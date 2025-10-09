@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:ordering_system/authentication/forgotPassword.dart';
+import 'package:ordering_system/authentication/registration.dart';
 import 'package:provider/provider.dart';
 
 // PROVIDERS
@@ -46,7 +48,11 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: themeProvider.themeData,
           home: AuthGate(),
-          routes: {'/login': (context) => const LoginScreen()},
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/register': (context) => const Register(),
+            '/forgot': (context) => const ForgotPassword(),
+          },
         );
       },
     );
