@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+// API
+import '../service/api_services.dart';
+
 class Register extends StatefulWidget {
   const Register({super.key});
 
@@ -31,7 +34,20 @@ class _Register extends State<Register> {
         return;
       }
       try {
-        // SAVE TO DJANGO LATER
+        final api = ApiServices(baseUrl: ApiServices.defaultBaseUrl());
+        final payload = {
+          "name": name.text,
+          "username": username.text,
+          "email": email.text,
+          "password": password.text,
+          "role": "customer",
+          "phoneNum": numPhone.text,
+        };
+        final resp = await api.registerUser(payload);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Registration Successful')),
+        );
       } catch (e) {
         // IMPLEMENTATION LATER
       }
@@ -116,6 +132,21 @@ class _Register extends State<Register> {
                                 (value) =>
                                     value!.isEmpty
                                         ? 'Please enter your username'
+                                        : null,
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: email,
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              labelStyle: GoogleFonts.montserrat(),
+                              border: const OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            validator:
+                                (value) =>
+                                    value!.isEmpty
+                                        ? 'Please enter your email'
                                         : null,
                           ),
                           const SizedBox(height: 10),

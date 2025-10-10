@@ -3,6 +3,6 @@
     "python-envs.pythonProjects": [],
     "dart.flutterDefaultDeviceId": "chrome",
     "dart.flutterRunAdditionalArgs": [
-        "--web-hostname","localhost","--web-port","60947"
+        "--web-hostname","localhost","--web-port","60497"
     ]
 }

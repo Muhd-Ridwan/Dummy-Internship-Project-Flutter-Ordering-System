@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from django.urls import path
+from corsheaders.defaults import default_headers
 import os
 import environ
 
@@ -29,7 +30,7 @@ SECRET_KEY = 'django-insecure-a4f68_-rpl9cmxw3q@*8*vt4qqjqks^khot(%3sx#4tr3kk2)_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -64,8 +65,15 @@ ROOT_URLCONF = 'orderingSystem.urls'
 # CORS_ALLOW_ALL_ORIGINS = True 
 
 CORS_ALLOWED_ORIGINS = [
-    # "http://localhost:60497/",
-    # "http://127.0.0.1:60947",
+    "http://localhost:60497",   # Flutter web origin from .vscode
+    "http://127.0.0.1:60497",
+    "http://localhost:8000",    # optional: if you open backend in browser
+    "http://10.0.2.2:8000",     # optional: Android emulator host
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "content-type",
+    "authorization",
 ]
 
 # REST FRAMEWORK

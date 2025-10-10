@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:ordering_system/authentication/forgotPassword.dart';
 import 'package:ordering_system/authentication/registration.dart';
+import 'package:ordering_system/service/api_test.dart';
 import 'package:provider/provider.dart';
 
 // PROVIDERS
@@ -52,6 +53,7 @@ class MyApp extends StatelessWidget {
             '/login': (context) => const LoginScreen(),
             '/register': (context) => const Register(),
             '/forgot': (context) => const ForgotPassword(),
+            '/apitest': (context) => const ApiTestScreen(),
           },
         );
       },
