@@ -11,6 +11,7 @@ import 'providers/theme_provider.dart';
 
 // SCREENS
 import 'authentication/login.dart';
+import 'product_cat/product_catalog.dart';
 
 Future<void> main() async {
   await startApp();
@@ -54,6 +55,7 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const Register(),
             '/forgot': (context) => const ForgotPassword(),
             '/apitest': (context) => const ApiTestScreen(),
+            '/product': (context) => const ProductCatalog(),
           },
         );
       },
@@ -76,7 +78,7 @@ class AuthGate extends StatelessWidget {
     //   case AuthStatus.unauthenticated:
     //     return const LoginScreen();
 
-    return const LoginScreen();
+    return const ProductCatalog();
   }
 }
 

@@ -6,6 +6,7 @@ from django.forms.models import model_to_dict
 
 # IMPORT APP CLASS
 from account.models import Userian
+from product.models import Product
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
