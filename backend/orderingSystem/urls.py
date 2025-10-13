@@ -16,10 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.views.generic import TemplateView   
 
+# PATH FOR EVERYTHING TO WORK PROPERLY
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'), # LOGIN PURPOSES
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('accounts/', include('account.urls')),
     path('products/', include('product.urls')),
+    path('', TemplateView.as_view(template_name='home.html'), name='home'),  # <-- root serves home.html
 ]

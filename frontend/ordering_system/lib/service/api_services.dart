@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiServices {
   final String baseUrl;
@@ -10,6 +11,55 @@ class ApiServices {
   static String defaultBaseUrl() {
     return kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
   }
+
+  // SECURE STORAGE FOR TOKENS INSTANCE
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  Future<void> saveAccessToken(String token) async {
+    await _secureStorage.write(key: 'access', value: token);
+  }
+
+  Future<String?> readAccessToken() async {
+    return await _secureStorage.read(key: 'access');
+  }
+
+  //LOGIN USING CUSTOM LOGIN FLUTTER
+  Future<Map<String, dynamic>> login(String username, String password) async {
+    final url = Uri.parse('$baseUrl/api/login/');
+    final resp = await http.post(
+      url,
+      headers: {
+        'content-Type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: jsonEncode({'username': username, 'password': password}),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('Login Failed: ${resp.statusCode}: ${resp.body}');
+    }
+  }
+
+  // LOGIN USING DEFAULT DJANGO AND IT IS GOOD FOR MOBILE BUT CREATE A USER USING DJANGO DEFAULT
+  //  Future<Map<String, dynamic>> login(String username, String password) async {
+  //   final url = Uri.parse('$baseUrl/api/token/');   <-- THE DIFF IS HERE
+  //   final resp = await http.post(
+  //     url,
+  //     headers: {
+  //       'content-Type': 'application/json',
+  //       'accept': 'application/json',
+  //     },
+  //     body: jsonEncode({'username': username, 'password': password}),
+  //   );
+  //   if (resp.statusCode == 200) {
+  //     return jsonDecode(resp.body) as Map<String, dynamic>;
+  //   } else {
+  //     throw Exception('Login Failed: ${resp.statusCode}: ${resp.body}');
+  //   }
+  // }
+
+  // ENDPOINT TO REGISTER A NEW USER
 
   Future<Map<String, dynamic>> registerUser(Map<String, dynamic> data) async {
     final url = Uri.parse('$baseUrl/api/register/');

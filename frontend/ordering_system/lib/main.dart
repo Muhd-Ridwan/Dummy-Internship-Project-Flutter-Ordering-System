@@ -78,7 +78,7 @@ class AuthGate extends StatelessWidget {
     //   case AuthStatus.unauthenticated:
     //     return const LoginScreen();
 
-    return const ProductCatalog();
+    return const LoginScreen();
   }
 }
 

@@ -4,6 +4,8 @@
 
 from django.forms.models import model_to_dict
 
+from django.contrib.auth.hashers import check_password   
+
 # IMPORT APP CLASS
 from account.models import Userian
 from product.models import Product
@@ -35,4 +37,30 @@ def register_user(request, *args, **kwargs):
         user = serializer.save()
         return Response({"user": serializer.data}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+def login_user(request, *args, **kwargs):
+    """
+    POST /api/login/
+    Body: { "username": "...","password":"..."}
+    Will returns 200 + basic user info on success, 401 on failure
+    """
+
+    username = (request.data.get("username") or "").strip()
+    password = request.data.get("password") or ""
+
+    if not username or not password:
+        return Response({"detail": "Username and password required"}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = Userian.objects.get(username=username)
+    except Userian.DoesNotExist:
+        return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+
+    if check_password(password, user.password):
+        data = {"id": user.id, "username": user.username, "name": user.name, "email": user.email, "role": user.role}
+        return Response({"user": data}, status=status.HTTP_200_OK)
+
+    return Response({"detail": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     

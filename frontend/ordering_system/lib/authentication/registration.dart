@@ -20,6 +20,63 @@ class _Register extends State<Register> {
   final confirmPassword = TextEditingController();
   final numPhone = TextEditingController();
 
+  bool _isSubmitting = false;
+
+  // CLEARING THE TEXT FIELD
+
+  void _clearForm() {
+    name.clear();
+    username.clear();
+    email.clear();
+    password.clear();
+    confirmPassword.clear();
+    numPhone.clear();
+
+    _formKey.currentState?.reset();
+  }
+
+  // SUCCESS DIALOG
+  Future<void> _showSuccessDialog() async {
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Registration Successful'),
+            content: const Text('Your account has been created successfully.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _clearForm();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  // ERROR DIALOG
+  Future<void> _showErrorDialog(String message) async {
+    return showDialog(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Registration Failed'),
+            content: Text(message),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  _clearForm();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
   void _createAccount() async {
     if (_formKey.currentState!.validate()) {
       if (password.text != confirmPassword.text) {
@@ -48,8 +105,16 @@ class _Register extends State<Register> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Registration Successful')),
         );
+
+        await _showSuccessDialog();
       } catch (e) {
-        // IMPLEMENTATION LATER
+        await _showErrorDialog(e.toString());
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
       }
     }
   }

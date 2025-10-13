@@ -11,7 +11,7 @@ class Userian(models.Model):
     phoneNum = models.CharField(max_length = 20)
 
     def __str__(self):
-        return ({self.name} - {self.username} - {self.role})
+        return str({self.name} - {self.username} - {self.role})
 
     # def generateRandomStuff():
     #     import random
