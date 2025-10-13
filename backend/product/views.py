@@ -21,7 +21,7 @@ class ProductViewSet(viewsets.ModelViewSet):
 
 
 @api_view(['POST'])
-@permission_classes([AllowAny])  # Change to IsAuthenticated if needed
+@permission_classes([permissions.AllowAny])  # Change to IsAuthenticated if you want only logged-in users to purchase
 def purchase_product(request, pk):
     """
     POST /api/products/pk/purchase/
