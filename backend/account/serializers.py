@@ -11,7 +11,13 @@ class UserianSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # HASH THE PASSWORD BEFORE SAVING
 
-        pwd = validated_data.pop('password', None)
+        pwd = validated_data.get('password')
         if pwd:
             validated_data['password'] = make_password(pwd)
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        pwd = validated_data.pop('password', None)
+        if pwd:
+            instance.password = make_password(pwd)
+        return super().update(instance, validated_data)

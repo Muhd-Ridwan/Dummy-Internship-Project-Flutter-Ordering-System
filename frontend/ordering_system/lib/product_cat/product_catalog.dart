@@ -11,7 +11,8 @@ class Product {
   final String category; // GPU/RAM/SSD/HDD/...
   final String brand;
   final double price;
-  final Map<String, dynamic> specs; // e.g. {'capacityGB': 1024, 'speedMHz': 3600, ...}
+  final Map<String, dynamic>
+  specs; // e.g. {'capacityGB': 1024, 'speedMHz': 3600, ...}
 
   Product({
     required this.id,
@@ -28,9 +29,9 @@ class Product {
 
 class PagedResult<T> {
   final List<T> items;
-  final int total;     // total rows from server
-  final int page;      // current page index (1-based)
-  final int pageSize;  // server page size
+  final int total; // total rows from server
+  final int page; // current page index (1-based)
+  final int pageSize; // server page size
   PagedResult({
     required this.items,
     required this.total,
@@ -64,7 +65,7 @@ abstract class CatalogRepository {
 
   /// Optional: preload dropdown/filter sources from DRF (e.g. /filters/*)
   Future<List<String>> fetchCategories(); // GPU/RAM/SSD/HDD...
-  Future<List<String>> fetchBrands();     // NVIDIA/AMD/Kingston/Samsung...
+  Future<List<String>> fetchBrands(); // NVIDIA/AMD/Kingston/Samsung...
   Future<List<String>> fetchInterfaces(); // NVMe/SATA/PCIe 4.0...
 }
 
@@ -88,7 +89,12 @@ class EmptyCatalogRepository implements CatalogRepository {
     SortBy sortBy = SortBy.popularity,
   }) async {
     // TODO(DRF): HTTP GET to /api/products
-    return PagedResult(items: const [], total: 0, page: page, pageSize: pageSize);
+    return PagedResult(
+      items: const [],
+      total: 0,
+      page: page,
+      pageSize: pageSize,
+    );
   }
 
   @override
@@ -221,12 +227,12 @@ class CatalogController extends ChangeNotifier {
   }
 }
 
-
 // FLUTTER BODY START HERE
 
 class ProductCatalog extends StatefulWidget {
-  const ProductCatalog({super.key, 
-  this.repository // FOR APICATALOGREPOSITORY LATER
+  const ProductCatalog({
+    super.key,
+    this.repository, // FOR APICATALOGREPOSITORY LATER
   });
 
   final CatalogRepository? repository; // FOR APICATALOGREPOSITORY LATER
@@ -236,33 +242,32 @@ class ProductCatalog extends StatefulWidget {
 }
 
 class _ProductCatalogState extends State<ProductCatalog> {
-
   late final CatalogController ctrl;
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   final _searchCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     ctrl = CatalogController(widget.repository ?? EmptyCatalogRepository());
     ctrl.bootstrap();
 
-    _scrollCtrl.addListener((){
-      if (_scrollCtrl.position.pixels >= _scrollCtrl.position.maxScrollExtent - 300){
+    _scrollCtrl.addListener(() {
+      if (_scrollCtrl.position.pixels >=
+          _scrollCtrl.position.maxScrollExtent - 300) {
         ctrl.loadMore();
       }
     });
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _scrollCtrl.dispose();
     _searchCtrl.dispose();
     ctrl.dispose();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -271,13 +276,13 @@ class _ProductCatalogState extends State<ProductCatalog> {
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.login_rounded, color: Colors.black),
-          tooltip: 'Login',
-          onPressed: () {
-            Navigator.pushReplacementNamed(context, '/login');
-          },
-        ),
+        // leading: IconButton(
+        //   icon: const Icon(Icons.login_rounded, color: Colors.black),
+        //   tooltip: 'Login',
+        //   onPressed: () {
+        //     Navigator.pushReplacementNamed(context, '/login');
+        //   },
+        // ),
         title: Text(
           'Product Catalog',
           style: GoogleFonts.montserrat(
@@ -289,7 +294,7 @@ class _ProductCatalogState extends State<ProductCatalog> {
         actions: [
           AnimatedBuilder(
             animation: ctrl,
-            builder: (_, __){
+            builder: (_, __) {
               return PopupMenuButton<SortBy>(
                 tooltip: 'Sort',
                 initialValue: ctrl.sortBy,
@@ -297,22 +302,35 @@ class _ProductCatalogState extends State<ProductCatalog> {
                   ctrl.sortBy = v;
                   ctrl.refresh();
                 },
-                itemBuilder: (c) => const [
-                  PopupMenuItem(value: SortBy.popularity, child: Text('Popularity')),
-                  PopupMenuItem(value: SortBy.priceLowHigh, child: Text('Price: Low to High')),
-                  PopupMenuItem(value: SortBy.priceHighLow, child: Text('Price: High to Low')),
-                  PopupMenuItem(value: SortBy.newest, child: Text('Newest')),
-                ],
+                itemBuilder:
+                    (c) => const [
+                      PopupMenuItem(
+                        value: SortBy.popularity,
+                        child: Text('Popularity'),
+                      ),
+                      PopupMenuItem(
+                        value: SortBy.priceLowHigh,
+                        child: Text('Price: Low to High'),
+                      ),
+                      PopupMenuItem(
+                        value: SortBy.priceHighLow,
+                        child: Text('Price: High to Low'),
+                      ),
+                      PopupMenuItem(
+                        value: SortBy.newest,
+                        child: Text('Newest'),
+                      ),
+                    ],
                 icon: const Icon(Icons.sort),
               );
             },
           ),
-          if(!isWide)
-          IconButton(
-            tooltip: 'Filters',
-            icon: const Icon(Icons.tune),
-            onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
-          ),
+          if (!isWide)
+            IconButton(
+              tooltip: 'Filters',
+              icon: const Icon(Icons.tune),
+              onPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+            ),
           const SizedBox(width: 10),
         ],
       ),
@@ -320,71 +338,85 @@ class _ProductCatalogState extends State<ProductCatalog> {
       body: Row(
         children: [
           // LEFT SIDEBAR
-          if(isWide)
-          ConstrainedBox(constraints: const BoxConstraints(maxWidth: 300),
-          child: _Sidebar(child: _FiltersPanel(ctrl: ctrl)),
-          ),
-          Expanded(child: AnimatedBuilder(animation: ctrl, builder: (context, _){
-            return CustomScrollView(
-              controller: _scrollCtrl,
-              slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: TextField(
-                    controller: _searchCtrl,
-                    onSubmitted: (v){
-                      ctrl.search = v.isEmpty ? null : v;
-                      ctrl.refresh();
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'Search GPU / RAM / SSD / HDD..',
-                      prefixIcon: const Icon(Icons.search),
-                      isDense: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+          if (isWide)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 300),
+              child: _Sidebar(child: _FiltersPanel(ctrl: ctrl)),
+            ),
+          Expanded(
+            child: AnimatedBuilder(
+              animation: ctrl,
+              builder: (context, _) {
+                return CustomScrollView(
+                  controller: _scrollCtrl,
+                  slivers: [
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                        child: TextField(
+                          controller: _searchCtrl,
+                          onSubmitted: (v) {
+                            ctrl.search = v.isEmpty ? null : v;
+                            ctrl.refresh();
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search GPU / RAM / SSD / HDD..',
+                            prefixIcon: const Icon(Icons.search),
+                            isDense: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
-                  ),),
-                  ),
-                  SliverToBoxAdapter(child: _AppliedChips(ctrl: ctrl)),
+                    SliverToBoxAdapter(child: _AppliedChips(ctrl: ctrl)),
 
-                  // GRID OF THE PRODUCTS
-                  if(ctrl.products.isEmpty && !ctrl.loading)
-                    const  SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: Center(child: Text('No products found')),
-                    )
-                  else
-                    SliverPadding(padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                    sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.78,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
+                    // GRID OF THE PRODUCTS
+                    if (ctrl.products.isEmpty && !ctrl.loading)
+                      const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(child: Text('No products found')),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.78,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                              ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, i) => _ProductCard(p: ctrl.products[i]),
+                            childCount: ctrl.products.length,
+                          ),
+                        ),
                       ),
-                      delegate: SliverChildBuilderDelegate((context, i) => _ProductCard(p: ctrl.products[i]),
-                      childCount: ctrl.products.length,),
-                    ),
-                    ),
 
                     // LOADING / END INDICATOR
                     SliverToBoxAdapter(
-                      child: Padding(padding: const EdgeInsets.only(bottom: 24),
-                      child: Center(child: ctrl.loading ? const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(),
-                      )
-                      : ctrl.reachedEnd
-                        ? const Text('End of results')
-                        : const SizedBox.shrink(),
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Center(
+                          child:
+                              ctrl.loading
+                                  ? const Padding(
+                                    padding: EdgeInsets.all(12),
+                                    child: CircularProgressIndicator(),
+                                  )
+                                  : ctrl.reachedEnd
+                                  ? const Text('End of results')
+                                  : const SizedBox.shrink(),
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            );
-          },
-          ),
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -400,8 +432,17 @@ class _Sidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(border: Border(right: BorderSide(color: Theme.of(context).dividerColor))),
-      child: SafeArea(child: SingleChildScrollView(padding: const EdgeInsets.all(16), child: child)),
+      decoration: BoxDecoration(
+        border: Border(
+          right: BorderSide(color: Theme.of(context).dividerColor),
+        ),
+      ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: child,
+        ),
+      ),
     );
   }
 }
@@ -458,15 +499,20 @@ class _FiltersPanelState extends State<_FiltersPanel> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(children: [
-          const Text('Filters', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
-          const Spacer(),
-          TextButton.icon(
-            onPressed: ctrl.clearFilters,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reset'),
-          ),
-        ]),
+        Row(
+          children: [
+            const Text(
+              'Filters',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+            ),
+            const Spacer(),
+            TextButton.icon(
+              onPressed: ctrl.clearFilters,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reset'),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
 
         _section(
@@ -474,9 +520,10 @@ class _FiltersPanelState extends State<_FiltersPanel> {
           DropdownButtonFormField<String>(
             value: _category,
             hint: const Text('GPU / RAM / SSD / HDD'),
-            items: (ctrl.categories.isEmpty ? <String>[] : ctrl.categories)
-                .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                .toList(),
+            items:
+                (ctrl.categories.isEmpty ? <String>[] : ctrl.categories)
+                    .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+                    .toList(),
             onChanged: (v) => setState(() => _category = v),
           ),
         ),
@@ -485,9 +532,10 @@ class _FiltersPanelState extends State<_FiltersPanel> {
           DropdownButtonFormField<String>(
             value: _brand,
             hint: const Text('Brand'),
-            items: (ctrl.brands.isEmpty ? <String>[] : ctrl.brands)
-                .map((b) => DropdownMenuItem(value: b, child: Text(b)))
-                .toList(),
+            items:
+                (ctrl.brands.isEmpty ? <String>[] : ctrl.brands)
+                    .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                    .toList(),
             onChanged: (v) => setState(() => _brand = v),
           ),
         ),
@@ -496,36 +544,43 @@ class _FiltersPanelState extends State<_FiltersPanel> {
           DropdownButtonFormField<String>(
             value: _iface,
             hint: const Text('NVMe / SATA / PCIe 4.0'),
-            items: (ctrl.interfaces.isEmpty ? <String>[] : ctrl.interfaces)
-                .map((i) => DropdownMenuItem(value: i, child: Text(i)))
-                .toList(),
+            items:
+                (ctrl.interfaces.isEmpty ? <String>[] : ctrl.interfaces)
+                    .map((i) => DropdownMenuItem(value: i, child: Text(i)))
+                    .toList(),
             onChanged: (v) => setState(() => _iface = v),
           ),
         ),
 
         _section(
           'Price (USD)',
-          Row(children: [
-            Expanded(child: _num(_priceMinCtrl, 'Min')),
-            const SizedBox(width: 8),
-            Expanded(child: _num(_priceMaxCtrl, 'Max')),
-          ]),
+          Row(
+            children: [
+              Expanded(child: _num(_priceMinCtrl, 'Min')),
+              const SizedBox(width: 8),
+              Expanded(child: _num(_priceMaxCtrl, 'Max')),
+            ],
+          ),
         ),
         _section(
           'Capacity (GB)',
-          Row(children: [
-            Expanded(child: _num(_capMinCtrl, 'Min')),
-            const SizedBox(width: 8),
-            Expanded(child: _num(_capMaxCtrl, 'Max')),
-          ]),
+          Row(
+            children: [
+              Expanded(child: _num(_capMinCtrl, 'Min')),
+              const SizedBox(width: 8),
+              Expanded(child: _num(_capMaxCtrl, 'Max')),
+            ],
+          ),
         ),
         _section(
           'Speed (MHz)',
-          Row(children: [
-            Expanded(child: _num(_speedMinCtrl, 'Min')),
-            const SizedBox(width: 8),
-            Expanded(child: _num(_speedMaxCtrl, 'Max')),
-          ]),
+          Row(
+            children: [
+              Expanded(child: _num(_speedMinCtrl, 'Min')),
+              const SizedBox(width: 8),
+              Expanded(child: _num(_speedMaxCtrl, 'Max')),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         FilledButton.icon(
@@ -553,17 +608,27 @@ class _FiltersPanelState extends State<_FiltersPanel> {
     );
   }
 
-  Widget _num(TextEditingController c, String hint) =>
-      TextFormField(controller: c, keyboardType: TextInputType.number, decoration: InputDecoration(isDense: true, hintText: hint, border: const OutlineInputBorder()));
+  Widget _num(TextEditingController c, String hint) => TextFormField(
+    controller: c,
+    keyboardType: TextInputType.number,
+    decoration: InputDecoration(
+      isDense: true,
+      hintText: hint,
+      border: const OutlineInputBorder(),
+    ),
+  );
 
   Widget _section(String title, Widget child) => Padding(
-        padding: const EdgeInsets.only(bottom: 18),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 10),
-          child,
-        ]),
-      );
+    padding: const EdgeInsets.only(bottom: 18),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: GoogleFonts.montserrat(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 10),
+        child,
+      ],
+    ),
+  );
 }
 
 class _AppliedChips extends StatelessWidget {
@@ -576,7 +641,15 @@ class _AppliedChips extends StatelessWidget {
 
     void add(String key, String? value, VoidCallback clear) {
       if (value != null && value.isNotEmpty) {
-        chips.add(InputChip(label: Text('$key: $value'), onDeleted: () { clear(); ctrl.refresh(); }));
+        chips.add(
+          InputChip(
+            label: Text('$key: $value'),
+            onDeleted: () {
+              clear();
+              ctrl.refresh();
+            },
+          ),
+        );
       }
     }
 
@@ -587,17 +660,44 @@ class _AppliedChips extends StatelessWidget {
     if (ctrl.priceMin != null || ctrl.priceMax != null) {
       final min = ctrl.priceMin?.toStringAsFixed(0) ?? '0';
       final max = ctrl.priceMax?.toStringAsFixed(0) ?? '∞';
-      chips.add(InputChip(label: Text('Price: \$$min–\$$max'), onDeleted: () { ctrl.priceMin = null; ctrl.priceMax = null; ctrl.refresh(); }));
+      chips.add(
+        InputChip(
+          label: Text('Price: \$$min–\$$max'),
+          onDeleted: () {
+            ctrl.priceMin = null;
+            ctrl.priceMax = null;
+            ctrl.refresh();
+          },
+        ),
+      );
     }
     if (ctrl.capacityMinGB != null || ctrl.capacityMaxGB != null) {
       final min = ctrl.capacityMinGB?.toString() ?? '0';
       final max = ctrl.capacityMaxGB?.toString() ?? '∞';
-      chips.add(InputChip(label: Text('Capacity: ${min}–${max}GB'), onDeleted: () { ctrl.capacityMinGB = null; ctrl.capacityMaxGB = null; ctrl.refresh(); }));
+      chips.add(
+        InputChip(
+          label: Text('Capacity: ${min}–${max}GB'),
+          onDeleted: () {
+            ctrl.capacityMinGB = null;
+            ctrl.capacityMaxGB = null;
+            ctrl.refresh();
+          },
+        ),
+      );
     }
     if (ctrl.speedMinMHz != null || ctrl.speedMaxMHz != null) {
       final min = ctrl.speedMinMHz?.toString() ?? '0';
       final max = ctrl.speedMaxMHz?.toString() ?? '∞';
-      chips.add(InputChip(label: Text('Speed: ${min}–${max}MHz'), onDeleted: () { ctrl.speedMinMHz = null; ctrl.speedMaxMHz = null; ctrl.refresh(); }));
+      chips.add(
+        InputChip(
+          label: Text('Speed: ${min}–${max}MHz'),
+          onDeleted: () {
+            ctrl.speedMinMHz = null;
+            ctrl.speedMaxMHz = null;
+            ctrl.refresh();
+          },
+        ),
+      );
     }
 
     if (chips.isEmpty) return const SizedBox(height: 8);
@@ -620,10 +720,12 @@ class _ProductCard extends StatelessWidget {
     String subtitle = p.category;
     if (p.category.toUpperCase() == 'RAM' && p.specs['speedMHz'] != null) {
       subtitle = 'RAM • ${p.specs['speedMHz']} MHz';
-    } else if ((p.category.toUpperCase() == 'SSD' || p.category.toUpperCase() == 'HDD') &&
+    } else if ((p.category.toUpperCase() == 'SSD' ||
+            p.category.toUpperCase() == 'HDD') &&
         p.specs['capacityGB'] != null) {
       subtitle = '${p.category} • ${p.specs['capacityGB']} GB';
-    } else if (p.category.toUpperCase() == 'GPU' && p.specs['interface'] != null) {
+    } else if (p.category.toUpperCase() == 'GPU' &&
+        p.specs['interface'] != null) {
       subtitle = 'GPU • ${p.specs['interface']}';
     }
 
@@ -647,17 +749,26 @@ class _ProductCard extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 2),
-              child: Text(p.name, maxLines: 1, overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.montserrat(fontWeight: FontWeight.w600)),
+              child: Text(
+                p.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-              child: Text('$subtitle • ${p.brand}', style: text.bodySmall?.copyWith(color: Colors.grey[600])),
+              child: Text(
+                '$subtitle • ${p.brand}',
+                style: text.bodySmall?.copyWith(color: Colors.grey[600]),
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(12, 6, 12, 0),
-              child: Text('\$${p.price.toStringAsFixed(2)}',
-                  style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+              child: Text(
+                '\$${p.price.toStringAsFixed(2)}',
+                style: text.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              ),
             ),
             const Spacer(),
             Padding(
@@ -672,9 +783,12 @@ class _ProductCard extends StatelessWidget {
                     label: const Text('Add'),
                   ),
                   const Spacer(),
-                  IconButton(onPressed: () {
-                    // TODO(Wishlist)
-                  }, icon: const Icon(Icons.favorite_border)),
+                  IconButton(
+                    onPressed: () {
+                      // TODO(Wishlist)
+                    },
+                    icon: const Icon(Icons.favorite_border),
+                  ),
                 ],
               ),
             ),
@@ -684,4 +798,3 @@ class _ProductCard extends StatelessWidget {
     );
   }
 }
-          
