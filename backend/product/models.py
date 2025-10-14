@@ -10,6 +10,9 @@ class Product(models.Model):
     brand = models.CharField(max_length=100)
     category = models.CharField(max_length=100)
 
+    # IMAGE
+    image = models.ImageField(upload_to='products/', null=True, blank=True)
+
     def __str__(self):
         return str ({'name': self.name, 'description': self.description, 'price': str(self.price), 'stock': self.stock, 'brand': self.brand, 'category': self.category})
     

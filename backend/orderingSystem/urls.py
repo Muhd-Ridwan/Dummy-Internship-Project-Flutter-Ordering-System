@@ -19,6 +19,10 @@ from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.views.generic import TemplateView   
 
+# ADDITIONAL IMPORTS FOR MEDIA
+from django.conf import settings
+from django.conf.urls.static import static
+
 # PATH FOR EVERYTHING TO WORK PROPERLY
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -30,3 +34,7 @@ urlpatterns = [
     path('', TemplateView.as_view(template_name='home.html'), name='home'),  # <-- root serves home.html
     path('api/products/', include('product.urls')),
 ]
+
+# TO SERVE MEDIA FILES IN DEVELOPMENT
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
