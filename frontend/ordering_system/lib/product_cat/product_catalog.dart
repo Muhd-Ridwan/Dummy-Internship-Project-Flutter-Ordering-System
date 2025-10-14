@@ -51,6 +51,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
     }
   }
 
+  // PRODUCT CARD
   Widget _buildCard(Map<String, dynamic> p) {
     final name = (p['name'] ?? p['title'] ?? 'No name').toString();
     final price = p['price'] != null ? p['price'].toString() : '0';
@@ -121,7 +122,19 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
     }
     if (_error != null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Product Catalog')),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          title: Text(
+            'Product Catalog',
+            style: GoogleFonts.montserrat(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black,
+            ),
+          ),
+          actionsIconTheme: const IconThemeData(color: Colors.black),
+        ),
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -135,24 +148,75 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(title: const Text('Product Catalog')),
-      body:
-          _products.isEmpty
-              ? Center(
-                child: Text('No products', style: GoogleFonts.montserrat()),
-              )
-              : GridView.builder(
-                padding: const EdgeInsets.all(12),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  childAspectRatio: 0.7,
+    // MAIN IS HERE
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            'Product Catalog',
+            style: GoogleFonts.montserrat(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+              color: Colors.black,
+            ),
+          ),
+          // WILL ADD LOGOUT BUTTON IN ACTION
+          actions: [
+            IconButton(
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: const Icon(Icons.logout),
+              tooltip: 'Logout',
+              onPressed: () async {
+                final confirmLogout = await showDialog<bool>(
+                  context: context,
+                  builder:
+                      (context) => AlertDialog(
+                        title: const Text('Confirm Logout'),
+                        content: const Text(
+                          'Logout from your account? Your selection and cart will not be saved.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text('CANCEL'),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text('LOGOUT'),
+                          ),
+                        ],
+                      ),
+                );
+                if (confirmLogout == true) {
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (r) => false,
+                  );
+                }
+              },
+            ),
+          ],
+        ),
+        body:
+            _products.isEmpty
+                ? Center(
+                  child: Text('No products', style: GoogleFonts.montserrat()),
+                )
+                : GridView.builder(
+                  padding: const EdgeInsets.all(12),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.7,
+                  ),
+                  itemCount: _products.length,
+                  itemBuilder: (context, i) => _buildCard(_products[i]),
                 ),
-                itemCount: _products.length,
-                itemBuilder: (context, i) => _buildCard(_products[i]),
-              ),
+      ),
     );
   }
 }

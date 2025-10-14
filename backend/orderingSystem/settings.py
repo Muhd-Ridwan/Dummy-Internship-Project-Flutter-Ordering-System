@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-a4f68_-rpl9cmxw3q@*8*vt4qqjqks^khot(%3sx#4tr3kk2)_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '100.73.166.7']
 
 
 # Application definition
@@ -70,6 +70,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:60497",
     "http://localhost:8000",    # optional: if you open backend in browser
     "http://10.0.2.2:8000",     # optional: Android emulator host
+    "http://ridwan-laptop.bass-atlas.ts.net:8000", # optional: if you want to access from other devices in the same network
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -114,7 +115,7 @@ DATABASES = {
         'NAME': 'Intern',
         'USER': 'Ridwan',
         'PASSWORD': 'abcd1234',
-        'HOST': 'localhost',
+        'HOST': 'ridwan-laptop.bass-atlas.ts.net',
         "PORT": '5432'
     }
 }
