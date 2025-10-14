@@ -8,10 +8,15 @@ import 'package:provider/provider.dart';
 // PROVIDERS
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/cart_providers.dart';
 
 // SCREENS
 import 'authentication/login.dart';
 import 'product_cat/product_catalog.dart';
+import 'product_cat/cart.dart';
+
+// SERVICES
+import 'service/api_services.dart';
 
 Future<void> main() async {
   await startApp();
@@ -32,6 +37,7 @@ Future<void> startApp() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AppAuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: const MyApp(),
     ),
@@ -55,7 +61,8 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const Register(),
             '/forgot': (context) => const ForgotPassword(),
             '/apitest': (context) => const ApiTestScreen(),
-            '/product': (context) => const ProductCatalog(),
+            '/product': (context) => const SimpleProductCatalog(),
+            '/cart': (context) => const CartScreen(),
           },
         );
       },

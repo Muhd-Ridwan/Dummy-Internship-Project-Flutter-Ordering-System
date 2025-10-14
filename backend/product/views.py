@@ -15,9 +15,25 @@ from .serializers import OrderSerializer
 
 
 class ProductViewSet(viewsets.ModelViewSet):
-    queryset = Product.objects.all()
+    queryset = Product.objects.all().order_by('id')
     serializer_class = ProductSerializer
     permission_classes = [permissions.AllowAny]  # NEED TO CHANGE ISAUTHENTICATED LATER
+
+
+class OrderViewSet(viewsets.ModelViewSet):
+    """
+    List user's orders (authenticated) or all order is staff
+    """
+    serializer_class = OrderSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        user = self.request.user
+        if getattr(user, "is_staff", False):
+            return Order.objects.all().order_by('-created_at')
+        if user and user.is_authenticated:
+            return Order.objects.filter(buyer=user).order_by('-created_at')
+        return Order.objects.none()
 
 
 @api_view(['POST'])
@@ -51,7 +67,10 @@ def purchase_product(request, pk):
             product=product,
             buyer=buyer,
             quantity=qty,
-            total_price=qty * product.price
+            total_price=qty * product.price,
+            shipping_address=shipping_address,
+            shipping_method=shipping_method,
+            status=Order.STATUS_PENDING
         )
     
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)

@@ -9,7 +9,9 @@ class ApiServices {
   ApiServices({required this.baseUrl});
 
   static String defaultBaseUrl() {
-    return kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+    if (kIsWeb) return 'http://127.0.0.1:8000';
+    return 'http://10.0.2.2:8000';
+    // return kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
   }
 
   // SECURE STORAGE FOR TOKENS INSTANCE
@@ -75,6 +77,7 @@ class ApiServices {
     }
   }
 
+  // FETCHING USERS
   Future<List<dynamic>> fetchUsers() async {
     final url = Uri.parse('$baseUrl/api/');
     final response = await http.get(
@@ -86,6 +89,30 @@ class ApiServices {
       return body['users'] as List<dynamic>;
     } else {
       throw Exception('Failed GET ${response.statusCode}: ${response.body}');
+    }
+  }
+
+  // FETCHING PRODUCTS
+  Future<List<Map<String, dynamic>>> fetchProducts() async {
+    final url = Uri.parse('$baseUrl/api/products/');
+    final resp = await http.get(url, headers: {'Accept': 'application/json'});
+    if (resp.statusCode == 200) {
+      final body = jsonDecode(resp.body);
+      if (body is Map && body.containsKey('products')) {
+        return List<Map<String, dynamic>>.from(body['products']);
+      } else if (body is Map && body.containsKey('results')) {
+        return List<Map<String, dynamic>>.from(body['results']);
+      } else if (body is List) {
+        return List<Map<String, dynamic>>.from(body);
+      } else {
+        throw Exception(
+          'Unexpected response format shape: ${body.runtimeType}',
+        );
+      }
+    } else {
+      throw Exception(
+        'Failed to fetch products: ${resp.statusCode}: ${resp.body}',
+      );
     }
   }
 

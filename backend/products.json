@@ -1,0 +1,38 @@
+[
+  {
+    "model": "product.product",
+    "pk": 1,
+    "fields": {
+      "name": "GTX 1660 Super",
+      "description": "6GB GDDR6 gaming GPU",
+      "price": "229.99",
+      "stock": 10,
+      "brand": "Nvidia",
+      "category": "GPU"
+    }
+  },
+  {
+    "model": "product.product",
+    "pk": 2,
+    "fields": {
+      "name": "Corsair Vengeance 16GB",
+      "description": "DDR4 3200MHz RAM 16GB (2x8GB)",
+      "price": "79.99",
+      "stock": 25,
+      "brand": "Corsair",
+      "category": "RAM"
+    }
+  },
+  {
+    "model": "product.product",
+    "pk": 3,
+    "fields": {
+      "name": "Samsung 970 EVO Plus 1TB",
+      "description": "NVMe M.2 SSD 1TB",
+      "price": "129.99",
+      "stock": 15,
+      "brand": "Samsung",
+      "category": "SSD"
+    }
+  }
+]
