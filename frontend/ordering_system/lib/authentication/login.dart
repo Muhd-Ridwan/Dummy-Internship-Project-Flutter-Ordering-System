@@ -15,6 +15,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
+  // LOGIN LOGIC USING ENTER BUTTON
+  Future<void> _attemptLogin() async {
+    final api = ApiServices(baseUrl: ApiServices.defaultBaseUrl());
+    final uname = _username.text.trim();
+    final pwd = _passwordController.text.trim();
+
+    if (uname.isEmpty || pwd.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Enter username and password')),
+      );
+      return;
+    }
+
+    try {
+      await api.login(uname, pwd);
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Login Successful')));
+
+      Navigator.pushNamedAndRemoveUntil(context, '/product', (route) => false);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Login Failed: $e')));
+    }
+  }
+
+  // LOGIN LOGIC USING ENTER BUTTON END
+
   @override
   Widget build(BuildContext context) {
     // USING POP SCOPE TO DISABLE GESTURE OR BACK BUTTON. MUEHEHEHEHE
@@ -40,6 +70,8 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _username,
                 keyboardType: TextInputType.name,
+                textInputAction: TextInputAction.next,
+                onSubmitted: (_) => FocusScope.of(context).nextFocus(),
                 decoration: InputDecoration(
                   labelText: 'Username',
                   prefixIcon: const Icon(Icons.person),
@@ -56,6 +88,8 @@ class _LoginScreenState extends State<LoginScreen> {
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _attemptLogin(),
                 decoration: InputDecoration(
                   labelText: 'Password',
                   prefixIcon: const Icon(Icons.lock_outline),

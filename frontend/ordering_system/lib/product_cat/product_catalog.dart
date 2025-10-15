@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart';
-import 'dart:math';
-import 'package:dio/dio.dart';
-import '../models/cart_item.dart';
+//import 'package:http/http.dart';
+//import 'dart:math';
+//import 'package:dio/dio.dart';
+//import '../models/cart_item.dart';
 import 'dart:math' as math;
 
 // IMPORTING PROVIDERS
@@ -20,15 +20,73 @@ class SimpleProductCatalog extends StatefulWidget {
 }
 
 class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  String _selectedCategory = 'All';
+
+  List<Map<String, dynamic>> _allProducts = [];
+
   final ApiServices api = ApiServices(baseUrl: ApiServices.defaultBaseUrl());
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _products = [];
 
+  // HELPER FOR SEARCH FUNCTION START
+  void _applyFilter() {
+    final q = _searchQuery.trim().toLowerCase();
+    if (q.isEmpty) {
+      setState(() {
+        _products = List<Map<String, dynamic>>.from(_allProducts);
+      });
+      return;
+    }
+    // SPLITTING WORDS
+    final tokens = q.split(RegExp(r'\s+')).where((t) => t.isNotEmpty).toList();
+
+    bool matches(Map<String, dynamic> p) {
+      // HANDLING BOTH FLAT & FIELDS SHAPE SAFELY
+      String field(dynamic map, String key) {
+        if (map == null) {
+          return '';
+        }
+        if (map is Map && map.containsKey(key)) {
+          return (map[key] ?? '').toString();
+        }
+        if (map is Map && map.containsKey('fields')) {
+          final f = map['fields'];
+          if (f is Map && f.containsKey(key)) {
+            return (f[key] ?? '').toString();
+          }
+        }
+        return '';
+      }
+
+      final name = field(p, 'name').toLowerCase();
+      final title = field(p, 'title').toLowerCase();
+      final brand = field(p, 'brand').toLowerCase();
+      final category = field(p, 'category').toLowerCase();
+      final desc = field(p, 'description').toLowerCase();
+
+      final hay = '$name $title $brand $category $desc';
+      return tokens.every((t) => hay.contains(t));
+    }
+
+    setState(() {
+      _products = _allProducts.where(matches).toList();
+    });
+  }
+  // HELPER FOR SEARCHING END
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -40,6 +98,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
       final data = await api.fetchProducts();
       setState(() {
         _products = data;
+        _allProducts = data;
       });
     } catch (e) {
       setState(() {
@@ -54,16 +113,22 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
 
   // PRODUCT CARD
   Widget _buildCard(Map<String, dynamic> p) {
+    final id = (p['id'] ?? p['pk'] ?? '').toString();
     final name = (p['name'] ?? p['title'] ?? 'No name').toString();
     final price = p['price'] != null ? p['price'].toString() : '0';
     final category = (p['category'] ?? '').toString();
     final brand = (p['brand'] ?? '').toString();
     final image = (p['image'] ?? p['image_url'] ?? '').toString();
+    final stock = p['stock'] != null ? p['stock'].toString() : '0';
 
     return Card(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: () {},
+        onTap:
+            () => _showProductDetailsDialog(
+              context,
+              id,
+            ), // () => _showProductDetailsDialog(context, id),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -111,25 +176,58 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                     style: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    '$brand • $category',
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  Text(
-                    'Price: \$${price}',
-                    style: const TextStyle(color: Colors.grey),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '$brand • $category',
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Stock: $stock',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    'Category: $category',
-                    style: GoogleFonts.montserrat(fontSize: 12),
+                    'Price: RM $price',
+                    style: const TextStyle(
+                      color: Colors.indigo,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Category: $category',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 12,
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 5),
                   Text(
                     'Brand: $brand',
-                    style: GoogleFonts.montserrat(fontSize: 12),
+                    style: GoogleFonts.montserrat(
+                      fontSize: 12,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 5),
                   Builder(
                     builder: (context) {
                       final pid = (p['id'] ?? p['pk'] ?? '').toString();
@@ -209,20 +307,23 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                               child: const Icon(Icons.add, size: 18),
                             ),
                           ),
+                          const Spacer(), // PUSHING EVERYTHING AFTER THIS CODE TO THE MOST RIGHT
+                          // ADD TO CART BUTTON
+                          IconButton.filled(
+                            onPressed: int.tryParse(stock) != 0 ? () {} : null,
+                            style: IconButton.styleFrom(
+                              backgroundColor: Colors.indigo,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(44, 44),
+                            ),
+                            icon: const Icon(Icons.add_shopping_cart_rounded),
+                            tooltip: 'Add to Cart',
+                          ),
                         ],
                       );
                     },
                   ),
                   const SizedBox(height: 5),
-                  Text(
-                    'Category: $category',
-                    style: GoogleFonts.montserrat(fontSize: 12),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    'Brand: $brand',
-                    style: GoogleFonts.montserrat(fontSize: 12),
-                  ),
                 ],
               ),
             ),
@@ -278,10 +379,20 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
               color: Colors.black,
             ),
           ),
+
           // ADD LOGOUT BUTTON IN ACTION
           actions: [
             IconButton(
-              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              icon: const Icon(Icons.shopping_cart),
+              tooltip: 'Cart',
+              onPressed: () {
+                Navigator.pushNamed(context, '/cart');
+              },
+            ),
+            const SizedBox(width: 12),
+            IconButton(
+              // padding: EdgeInsets.only(right: 20),
               constraints: const BoxConstraints(),
               icon: const Icon(Icons.logout),
               tooltip: 'Logout',
@@ -315,7 +426,55 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                 }
               },
             ),
+            const SizedBox(width: 8),
           ],
+          // BOTTOM OF APPBAR
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(56),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+              child: TextField(
+                controller: _searchController,
+                onChanged: (q) {
+                  _searchQuery = q;
+                  _applyFilter();
+                  setState(() {});
+                  // No need to call setState here as _applyFilter already does that
+                },
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  hintText: 'Search Products...',
+                  prefixIcon: const Icon(Icons.search),
+                  isDense: true,
+                  suffixIcon:
+                      _searchQuery.isEmpty
+                          ? null
+                          : IconButton(
+                            tooltip: 'Clear',
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                              _searchQuery = '';
+                              _applyFilter();
+                              setState(() {});
+                              // DISMISSING KEYBOARD (EXTRA FEATURES ONLY)
+                              FocusScope.of(context).unfocus();
+                            },
+                          ),
+                  filled: true,
+                  fillColor: Theme.of(context).colorScheme.surfaceContainer,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24.0),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
         body: LayoutBuilder(
           builder: (context, constraints) {
@@ -336,32 +495,144 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                     crossAxisCount: crossAxisCount,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
-                    childAspectRatio: 0.7,
+                    childAspectRatio: 0.65, // Adjusted for better card height
                   ),
                   itemCount: _products.length,
-                  itemBuilder: (context, i) => _buildCard(_products[i]),
+                  itemBuilder: (context, i) {
+                    //final product = _products[i];
+                    return _buildCard(_products[i]);
+                  }, //_buildCard(_products[i]),
                 ),
               ),
             );
           },
-          //       _products.isEmpty
-          //           ? Center(
-          //             child: Text('No products', style: GoogleFonts.montserrat()),
-          //           )
-          //           : GridView.builder(
-          //             padding: const EdgeInsets.all(12),
-          //             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          //               crossAxisCount: 2,
-          //               crossAxisSpacing: 12,
-          //               mainAxisSpacing: 12,
-          //               childAspectRatio: 0.7,
-          //             ),
-          //             itemCount: _products.length,
-          //             itemBuilder: (context, i) => _buildCard(_products[i]),
-          //           ),
-          // ),
         ),
       ),
     );
   }
+}
+
+// HELPER METHOD TO SHOW THE DETAILS
+Future<void> _showProductDetailsDialog(
+  BuildContext context,
+  dynamic productId,
+) async {
+  final api = ApiServices(baseUrl: ApiServices.defaultBaseUrl());
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FutureBuilder<Map<String, dynamic>>(
+            future: api.fetchProductDetails(productId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return SizedBox(
+                  height: 120,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.hasError) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 36,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Failed to load product details',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(snapshot.error.toString()),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text('CLOSE'),
+                    ),
+                  ],
+                );
+              }
+              final data = snapshot.data!;
+              final title = data['name'] ?? data['title'] ?? 'Product';
+              final description =
+                  data['description'] ?? 'No description available';
+              final price = data['price']?.toString() ?? '';
+              // IMAGE
+              final base = ApiServices.defaultBaseUrl();
+              final rawImage =
+                  (data['image'] ?? data['image_url'] ?? '').toString();
+              final imageUrl =
+                  rawImage.isEmpty
+                      ? ''
+                      : (rawImage.startsWith('http')
+                          ? rawImage
+                          : '$base$rawImage');
+
+              return SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // ADDING IMAGE
+                    AspectRatio(
+                      aspectRatio: 4 / 3,
+                      child:
+                          imageUrl.isEmpty
+                              ? Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: Icon(Icons.memory, size: 48),
+                                ),
+                              )
+                              : Image.network(
+                                imageUrl,
+                                fit: BoxFit.contain,
+                                width: double.infinity,
+                                errorBuilder:
+                                    (c, e, st) => Container(
+                                      color: Colors.grey[200],
+                                      child: const Center(
+                                        child: Icon(Icons.broken_image),
+                                      ),
+                                    ),
+                              ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (price.isNotEmpty)
+                      Text(
+                        'Price: \RM ${price}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    const SizedBox(height: 12),
+                    Text(description),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        child: const Text('CLOSE'),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    },
+  );
 }

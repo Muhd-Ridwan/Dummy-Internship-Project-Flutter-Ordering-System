@@ -152,4 +152,22 @@ class ApiServices {
       );
     }
   }
+
+  // FETCHING PRODUCT DESCRIPTION
+  Future<Map<String, dynamic>> fetchProductDetails(dynamic id) async {
+    final url = Uri.parse('$baseUrl/api/products/$id/');
+    final headers = {
+      'content-type': 'application/json',
+      'accept': 'application/json',
+    };
+    final resp = await http.get(url, headers: headers);
+    if (resp.statusCode == 200) {
+      print(jsonDecode(resp.body));
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to load product $id: ${resp.statusCode}: ${resp.body}',
+      );
+    }
+  }
 }
