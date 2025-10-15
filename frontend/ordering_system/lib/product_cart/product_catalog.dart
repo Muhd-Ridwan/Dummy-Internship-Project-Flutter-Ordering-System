@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ordering_system/providers/auth_provider.dart';
 //import 'package:http/http.dart';
 //import 'dart:math';
 //import 'package:dio/dio.dart';
@@ -20,6 +21,8 @@ class SimpleProductCatalog extends StatefulWidget {
 }
 
 class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
+
+  // SEARCH RELATED
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'All';
@@ -27,6 +30,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
   List<Map<String, dynamic>> _allProducts = [];
 
   final ApiServices api = ApiServices(baseUrl: ApiServices.defaultBaseUrl());
+
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _products = [];
@@ -310,11 +314,55 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                           const Spacer(), // PUSHING EVERYTHING AFTER THIS CODE TO THE MOST RIGHT
                           // ADD TO CART BUTTON
                           IconButton.filled(
-                            onPressed: int.tryParse(stock) != 0 ? () {} : null,
+                            onPressed: int.tryParse(stock) != 0
+                            ? () async {
+                              final auth = context.read<AppAuthProvider>();
+                              final cartProv = context.read<CartProvider>();
+                              final qtyToAdd = qty > 0 ? qty : 1;
+
+                              // IF USER LOGGED IN, TRY TO ADD TO SERVER CART FIRST
+                              if(auth.isLoggedIn && auth.userId != null){
+                                try{
+                                  await api.addToCart(
+                                    userId: auth.userId!,
+                                    productId: int.parse(pid) ?? 0,
+                                    name: name,
+                                    price: priceVal,
+                                    quantity: qtyToAdd,
+                                    token: auth.token,
+                                  );
+                                  cartProv.addItem(
+                                    productId: pid,
+                                    name: name,
+                                    price: priceVal,
+                                    qty: qtyToAdd,
+                                  );
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Added to cart'))
+                                  );
+                                }catch(e){
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to add to cart: $e'))
+                                  );
+                                }
+                              }else{
+                                // IF NOT LOGGED IN. IT WILL KEEP THE CART LOCALLY
+                                cartProv.addItem(
+                                  productId: pid,
+                                  name: name,
+                                  price: priceVal,
+                                  qty: qtyToAdd,
+                                );
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Added to local cart(login to sync)'))
+                                );
+                              }
+                            }
+                            : null,
                             style: IconButton.styleFrom(
                               backgroundColor: Colors.indigo,
                               foregroundColor: Colors.white,
-                              minimumSize: const Size(44, 44),
+                              minimumSize: const Size(44,44),
                             ),
                             icon: const Icon(Icons.add_shopping_cart_rounded),
                             tooltip: 'Add to Cart',
@@ -382,14 +430,37 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
 
           // ADD LOGOUT BUTTON IN ACTION
           actions: [
-            IconButton(
-              constraints: const BoxConstraints(),
-              icon: const Icon(Icons.shopping_cart),
-              tooltip: 'Cart',
-              onPressed: () {
-                Navigator.pushNamed(context, '/cart');
-              },
-            ),
+            Builder(builder: (ctx){
+              final auth = ctx.read<AppAuthProvider>();
+              final count = ctx.watch<CartProvider>().items.length;
+              return IconButton(
+                constraints: const BoxConstraints(),
+                tooltip: 'Cart',
+                onPressed: (){
+                  if(!auth.isLoggedIn || auth.userId == null){
+                    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Please login first')));
+                    return;
+                  }
+                  Navigator.pushNamed(ctx, '/cart');
+                },
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.shopping_cart),
+                    if(count > 0)
+                      Positioned(
+                        right: -6,
+                        top: -6,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                          child: Text(count.toString(), style: const TextStyle(fontSize: 10, color: Colors.white)),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
             const SizedBox(width: 12),
             IconButton(
               // padding: EdgeInsets.only(right: 20),

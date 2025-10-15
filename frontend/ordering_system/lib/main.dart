@@ -12,8 +12,8 @@ import 'providers/cart_providers.dart';
 
 // SCREENS
 import 'authentication/login.dart';
-import 'product_cat/product_catalog.dart';
-import 'product_cat/cart.dart';
+import 'product_cart/product_catalog.dart';
+import 'product_cart/cart.dart';
 
 // SERVICES
 import 'service/api_services.dart';
