@@ -76,6 +76,12 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AppAuthProvider>();
+    if (auth.isLoggedIn) {
+      return const SimpleProductCatalog();
+    } else {
+      return const LoginScreen();
+    }
     // final auth = context.watch<AppAuthProvider>();
     // switch (auth.status) {
     //   case AuthStatus.checking:
@@ -84,8 +90,6 @@ class AuthGate extends StatelessWidget {
     //     return const HomeScreen();
     //   case AuthStatus.unauthenticated:
     //     return const LoginScreen();
-
-    return const LoginScreen();
   }
 }
 

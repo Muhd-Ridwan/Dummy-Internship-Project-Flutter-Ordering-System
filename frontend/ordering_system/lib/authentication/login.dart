@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ordering_system/providers/auth_provider.dart';
+import 'package:provider/provider.dart';
 import '../service/api_services.dart';
+import 'package:text_3d/text_3d.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -29,13 +32,49 @@ class _LoginScreenState extends State<LoginScreen> {
     }
 
     try {
-      await api.login(uname, pwd);
+      // Try custom /api/login/ first if return user+ token
+      String? token;
+      try {
+        final resp = await api.login(uname, pwd);
+
+        // TRYING EXTRACT TOKEN
+        token =
+            (resp['access'] as String?) ??
+            (resp['token'] as String?) ??
+            (resp['auth_token'] as String?);
+      } catch (_) {
+        // ignore, keep token null if not available
+        // FALLBACK TO OUTSIDE TRY
+      }
+
+      token ??= (await api.obtainToken(uname, pwd))['access'] as String?;
+      if (token == null || token.isEmpty) {
+        throw Exception('Token not found in response');
+      }
+
+      await api.saveAccessToken(token);
+
+      // FETCHING CURRENT USER
+      final me = await api.getUser(token);
+      final int userId = (me['id'] as num).toInt();
+      final String email = (me['email'] as String?) ?? uname;
+      final String role = (me['role'] as String? ?? '').toLowerCase();
+
+      context.read<AppAuthProvider>().login(
+        email: email,
+        userId: userId,
+        token: token,
+      );
 
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Login Successful')));
 
-      Navigator.pushNamedAndRemoveUntil(context, '/product', (route) => false);
+      if (role == 'customer') {
+        Navigator.pushNamedAndRemoveUntil(context, '/product', (_) => false);
+      } else {
+        //
+      }
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -57,6 +96,16 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              Text(
+                'Tekunorogi Shoppuru',
+                softWrap: true,
+                style: GoogleFonts.moonDance(
+                  fontSize: 80,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 10),
               Text(
                 'Login',
                 style: GoogleFonts.montserrat(
@@ -122,13 +171,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   onPressed: () async {
-                    final api = ApiServices(
-                      baseUrl: ApiServices.defaultBaseUrl(),
-                    );
-                    final uname = _username.text.trim();
-                    final pwd = _passwordController.text.trim();
+                    final usernameText = _username.text.trim();
+                    final passwordText = _passwordController.text.trim();
 
-                    if (uname.isEmpty || pwd.isEmpty) {
+                    if (usernameText.isEmpty || passwordText.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('Enter username and password'),
@@ -136,19 +182,55 @@ class _LoginScreenState extends State<LoginScreen> {
                       );
                       return;
                     }
+
                     try {
-                      await api.login(uname, pwd);
+                      final api = ApiServices(
+                        baseUrl: ApiServices.defaultBaseUrl(),
+                      );
+
+                      final resp = await api.login(usernameText, passwordText);
+                      final String? tokenStr =
+                          resp['access'] as String? ?? resp['token'] as String?;
+
+                      if (tokenStr == null || tokenStr.isEmpty) {
+                        throw Exception('Token not found in response');
+                      }
+
+                      // FOR PERSIST TOKEN
+                      await api.saveAccessToken(tokenStr);
+
+                      // FETCHING CURRENT USER
+                      final me = await api.getUser(tokenStr);
+                      // EXPECTED IS IN JSON {id: 1, email: adjhajdhaj@gmail.com, role: customer}
+                      final int userId = (me['id'] as num).toInt();
+                      final String email =
+                          (me['email'] as String?) ?? usernameText;
+                      final String role =
+                          (me['role'] as String? ?? '').toLowerCase();
+
+                      // SAVE TO PROVIDER
+                      context.read<AppAuthProvider>().login(
+                        email: email,
+                        userId: userId,
+                        token: tokenStr,
+                      );
+
+                      print('This is the token for logging in : $tokenStr');
 
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Login Successful')),
                       );
 
-                      // Clear the whole back stack so back won’t return to Login
-                      Navigator.pushNamedAndRemoveUntil(
-                        context,
-                        '/product',
-                        (route) => false,
-                      );
+                      // PAGE ROUTE FOR ROLE PURPOSES
+                      if (role == 'customer') {
+                        Navigator.pushNamedAndRemoveUntil(
+                          context,
+                          '/product',
+                          (_) => false,
+                        );
+                      } else {
+                        //
+                      }
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Login Failed: $e')),

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import api_home, register_user, login_user # IMPORT EVERY DEF THAT CREATE IN VIEWS.PY FROM THE APPLICATION
+from .views import api_home, register_user, login_user, me # IMPORT EVERY DEF THAT CREATE IN VIEWS.PY FROM THE APPLICATION
 from cart import views as cart_views
 
 
@@ -15,6 +15,7 @@ urlpatterns = [
     path('', api_home, name="api_home"), # /api/accounts/users/
     path('register/', register_user, name='api_register'), # /api/accounts/register
     path('login/', login_user, name='api_login'), # /api/accounts/login
+    path('me/', me, name='api_me'), # /api/accounts/me
     # CART ENDPONT
     path('cart/', cart_views.get_cart, name='api_cart'), # /api/cart/?user_id=1
     path('cart/add/', cart_views.add_to_cart, name='api_cart_add'),

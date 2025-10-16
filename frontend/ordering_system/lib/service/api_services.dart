@@ -100,7 +100,7 @@ class ApiServices {
     required double price,
     int quantity = 1,
     String? token,
-}) async {
+  }) async {
     final url = Uri.parse('$baseUrl/api/cart/add/');
     final headers = {
       'content-type': 'application/json',
@@ -115,83 +115,115 @@ class ApiServices {
       'quantity': quantity,
     };
     final resp = await http.post(url, headers: headers, body: jsonEncode(body));
-    if(resp.statusCode == 200 || resp.statusCode == 201){
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
       return jsonDecode(resp.body) as Map<String, dynamic>;
-    }else{
+    } else {
       throw Exception('addToCart Failed: ${resp.statusCode}: ${resp.body}');
     }
-}
-// ADDING TO CART END
-
-// FETCH CART
-Future<Map<String, dynamic>> fetchCart({required int userId, String? token}) async {
-  final url = Uri.parse('$baseUrl/api/cart/?user_id=$userId');
-  final headers = {
-    'accept': 'application/json',
-    if(token != null) 'Authorization': 'Bearer $token',
-  };
-  final resp = await http.get(url, headers: headers);
-  if(resp.statusCode == 200){
-    return jsonDecode(resp.body) as Map<String, dynamic>;
-  }else{
-    throw Exception('fetchCart Failed: ${resp.statusCode}: ${resp.body}');
   }
-}
-// FETCHING CARD END
+  // ADDING TO CART END
 
-// UPDATE CART ITEM START
-Future<void> updateCartItem({
-  required int itemId,
-  required int quantity,
-  String? token,
-}) async {
-  final url = Uri.parse('$baseUrl/api/cart/item/$itemId/');
-  final headers = {
-    'content-type': 'application/json',
-    'accept': 'application/json',
-    if(token != null) 'Authorization': 'Bearer $token',
-};
-final resp = await http.put(url, headers:headers, body: jsonEncode({'quantity': quantity}));
-if(resp.statusCode == 200 && resp.statusCode != 204){
-  throw Exception('updateCartItem Failed: ${resp.statusCode}: ${resp.body}');
-}
-}
-// UPDATE CART ITEM END
-
-// REMOVE CART ITEM START
-Future<void> removeCartItem({
-  required int itemId,
-  String? token,
-}) async {
-  final url = Uri.parse('$baseUrl/api/cart/item/$itemId/');
-  final headers = {
-    'accept': 'application/json',
-    if(token != null) 'Authorization': 'Bearer $token',
-  };
-  final resp = await http.delete(url, headers: headers);
-  if(resp.statusCode != 204 && resp.statusCode != 200){
-    throw Exception('removeCartItem Failed: ${resp.statusCode}: ${resp.body}');
+  // FETCH CART
+  Future<Map<String, dynamic>> fetchCart({
+    required int userId,
+    String? token,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/cart/?user_id=$userId');
+    final headers = {
+      'accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+    final resp = await http.get(url, headers: headers);
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('fetchCart Failed: ${resp.statusCode}: ${resp.body}');
+    }
   }
-}
-// REMOVE CART ITEM END
+  // FETCHING CARD END
 
-// CHECKOUT CART START
-Future<Map<String, dynamic>> checkout({required int userId, String? token}) async {
-  final url = Uri.parse('$baseUrl/api/cart/checkout/');
-  final headers = {
-    'content-type' : 'application/json',
-    'accept' : 'application/json',
-    if(token != null) 'Authorization': 'Bearer $token',
-  };
-  final resp = await http.post(url, headers: headers, body: jsonEncode({'user_id': userId}));
-  if(resp.statusCode == 200 || resp.statusCode == 201){
-    return jsonDecode(resp.body) as Map<String, dynamic>;
-  }else{
-    throw Exception('checkout Failed: ${resp.statusCode}: ${resp.body}');
+  // UPDATE CART ITEM START
+  Future<void> updateCartItem({
+    required int itemId,
+    required int quantity,
+    String? token,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/cart/item/$itemId/');
+    final headers = {
+      'content-type': 'application/json',
+      'accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+    final resp = await http.put(
+      url,
+      headers: headers,
+      body: jsonEncode({'quantity': quantity}),
+    );
+    if (resp.statusCode == 200 && resp.statusCode != 204) {
+      throw Exception(
+        'updateCartItem Failed: ${resp.statusCode}: ${resp.body}',
+      );
+    }
   }
-}
-// CHECKOUT CART END
+  // UPDATE CART ITEM END
 
+  // REMOVE CART ITEM START
+  Future<void> removeCartItem({required int itemId, String? token}) async {
+    final url = Uri.parse('$baseUrl/api/cart/item/$itemId/');
+    final headers = {
+      'accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+    final resp = await http.delete(url, headers: headers);
+    if (resp.statusCode != 204 && resp.statusCode != 200) {
+      throw Exception(
+        'removeCartItem Failed: ${resp.statusCode}: ${resp.body}',
+      );
+    }
+  }
+  // REMOVE CART ITEM END
+
+  // CHECKOUT CART START
+  Future<Map<String, dynamic>> checkout({
+    required int userId,
+    String? token,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/cart/checkout/');
+    final headers = {
+      'content-type': 'application/json',
+      'accept': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+    final resp = await http.post(
+      url,
+      headers: headers,
+      body: jsonEncode({'user_id': userId}),
+    );
+    if (resp.statusCode == 200 || resp.statusCode == 201) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    } else {
+      throw Exception('checkout Failed: ${resp.statusCode}: ${resp.body}');
+    }
+  }
+  // CHECKOUT CART END
+
+  // LOGIN PURPOSES TO GET THE ID FOR CUSTOMER
+  Future<Map<String, dynamic>> getUser(String token) async {
+    // COULD BE /login/me/
+    final url = Uri.parse('$baseUrl/api/me/');
+    final resp = await http.get(
+      url,
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    } else {
+      throw Exception(
+        'Failed to fetch profile: ${resp.statusCode}: ${resp.body}',
+      );
+    }
+  }
+  // LOGIN PURPOSES TO GET THE ID FOR CUSTOMER END
 
   // FETCHING PRODUCTS
   Future<List<Map<String, dynamic>>> fetchProducts() async {
@@ -270,5 +302,23 @@ Future<Map<String, dynamic>> checkout({required int userId, String? token}) asyn
         'Failed to load product $id: ${resp.statusCode}: ${resp.body}',
       );
     }
+  }
+
+  // DELETE HELPERS
+  Future<void> deleteAccessToken() async {
+    await _secureStorage.delete(key: 'access');
+  }
+
+  // TO STORE REFRESH TOKEN LATER (IN FUTURE)
+  Future<void> saveRefreshToken(String token) async {
+    await _secureStorage.write(key: 'refresh', value: token);
+  }
+
+  Future<String?> readRefreshToken() async {
+    return await _secureStorage.read(key: 'refresh');
+  }
+
+  Future<void> deleteRefreshToken() async {
+    await _secureStorage.delete(key: 'refresh');
   }
 }

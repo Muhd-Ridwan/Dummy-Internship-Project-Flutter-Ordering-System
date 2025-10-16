@@ -21,6 +21,15 @@ class SimpleProductCatalog extends StatefulWidget {
 }
 
 class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
+  // TO SHOW THE QUANTITY OFF ADDING ITEMS
+  final Map<String, int> _pendingQty = {};
+
+  int _getPendingQty(String pid) => _pendingQty[pid] ?? 0;
+  void _setPendingQty(String pid, int value) {
+    setState(() {
+      _pendingQty[pid] = value.clamp(0, 999);
+    });
+  }
 
   // SEARCH RELATED
   final TextEditingController _searchController = TextEditingController();
@@ -237,11 +246,13 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                       final pid = (p['id'] ?? p['pk'] ?? '').toString();
                       final priceVal =
                           double.tryParse(p['price']?.toString() ?? '0') ?? 0.0;
-                      final cart = context.watch<CartProvider>();
-                      final idx = cart.items.indexWhere(
-                        (c) => c.productId == pid,
-                      );
-                      final qty = idx >= 0 ? cart.items[idx].quantity : 0;
+
+                      // USE LOCAL SELECTOR QTY
+                      final qty = _getPendingQty(pid);
+                      // final cart = context.watch<CartProvider>();
+                      // final idx = cart.items.indexWhere(
+                      //   (c) => c.productId == pid,
+                      // );
 
                       return Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -260,7 +271,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                               onPressed:
                                   qty > 0
                                       ? () {
-                                        cart.updateQuantity(pid, qty - 1);
+                                        _setPendingQty(pid, qty - 1);
                                       }
                                       : null,
                               child: const Icon(Icons.remove, size: 18),
@@ -268,7 +279,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                           ),
                           const SizedBox(width: 8),
 
-                          // QTY DISPLAY
+                          // QUANTITY DISPLAY
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -297,16 +308,23 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                                 ),
                               ),
                               onPressed: () {
-                                if (qty > 0) {
-                                  cart.updateQuantity(pid, qty + 1);
-                                } else {
-                                  cart.addItem(
-                                    productId: pid,
-                                    name: name,
-                                    price: priceVal,
-                                    qty: 1,
-                                  );
-                                }
+                                _setPendingQty(pid, qty + 1);
+                                // if (qty > 0) {
+                                //   ScaffoldMessenger.of(context).showSnackBar(
+                                //     const SnackBar(
+                                //       content: Text(
+                                //         'There is nothing to add to cart for this item',
+                                //       ),
+                                //     ),
+                                //   );
+                                // } else {
+                                //   cart.addItem(
+                                //     productId: pid,
+                                //     name: name,
+                                //     price: priceVal,
+                                //     qty: 1,
+                                //   );
+                                // }
                               },
                               child: const Icon(Icons.add, size: 18),
                             ),
@@ -314,55 +332,90 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                           const Spacer(), // PUSHING EVERYTHING AFTER THIS CODE TO THE MOST RIGHT
                           // ADD TO CART BUTTON
                           IconButton.filled(
-                            onPressed: int.tryParse(stock) != 0
-                            ? () async {
-                              final auth = context.read<AppAuthProvider>();
-                              final cartProv = context.read<CartProvider>();
-                              final qtyToAdd = qty > 0 ? qty : 1;
+                            onPressed:
+                                int.tryParse(stock) != 0
+                                    ? () async {
+                                      final auth =
+                                          context.read<AppAuthProvider>();
+                                      final cartProv =
+                                          context.read<CartProvider>();
+                                      // final qtyToAdd = qty > 0 ? qty : 1;
 
-                              // IF USER LOGGED IN, TRY TO ADD TO SERVER CART FIRST
-                              if(auth.isLoggedIn && auth.userId != null){
-                                try{
-                                  await api.addToCart(
-                                    userId: auth.userId!,
-                                    productId: int.parse(pid) ?? 0,
-                                    name: name,
-                                    price: priceVal,
-                                    quantity: qtyToAdd,
-                                    token: auth.token,
-                                  );
-                                  cartProv.addItem(
-                                    productId: pid,
-                                    name: name,
-                                    price: priceVal,
-                                    qty: qtyToAdd,
-                                  );
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Added to cart'))
-                                  );
-                                }catch(e){
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Failed to add to cart: $e'))
-                                  );
-                                }
-                              }else{
-                                // IF NOT LOGGED IN. IT WILL KEEP THE CART LOCALLY
-                                cartProv.addItem(
-                                  productId: pid,
-                                  name: name,
-                                  price: priceVal,
-                                  qty: qtyToAdd,
-                                );
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Added to local cart(login to sync)'))
-                                );
-                              }
-                            }
-                            : null,
+                                      if (qty <= 0) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'There are no items to add to cart for this item',
+                                            ),
+                                          ),
+                                        );
+                                        return;
+                                      }
+
+                                      // IF USER LOGGED IN, TRY TO ADD TO SERVER CART FIRST
+                                      if (auth.isLoggedIn &&
+                                          auth.userId != null) {
+                                        final productIdInt =
+                                            int.tryParse(pid) ?? 0;
+                                        try {
+                                          await api.addToCart(
+                                            userId: auth.userId!,
+                                            productId: productIdInt,
+                                            name: name,
+                                            price: priceVal * qty,
+                                            quantity: qty,
+                                            token: auth.token,
+                                          );
+                                          cartProv.addItem(
+                                            productId: pid,
+                                            name: name,
+                                            price: priceVal * qty,
+                                            qty: qty,
+                                          );
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Added to cart'),
+                                            ),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Failed to add to cart: $e',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      } else {
+                                        // IF NOT LOGGED IN. IT WILL KEEP THE CART LOCALLY
+                                        cartProv.addItem(
+                                          productId: pid,
+                                          name: name,
+                                          price: priceVal,
+                                          qty: qty,
+                                        );
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'Added to local cart(login to sync)',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                    : null,
                             style: IconButton.styleFrom(
                               backgroundColor: Colors.indigo,
                               foregroundColor: Colors.white,
-                              minimumSize: const Size(44,44),
+                              minimumSize: const Size(44, 44),
                             ),
                             icon: const Icon(Icons.add_shopping_cart_rounded),
                             tooltip: 'Add to Cart',
@@ -430,37 +483,50 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
 
           // ADD LOGOUT BUTTON IN ACTION
           actions: [
-            Builder(builder: (ctx){
-              final auth = ctx.read<AppAuthProvider>();
-              final count = ctx.watch<CartProvider>().items.length;
-              return IconButton(
-                constraints: const BoxConstraints(),
-                tooltip: 'Cart',
-                onPressed: (){
-                  if(!auth.isLoggedIn || auth.userId == null){
-                    ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(content: Text('Please login first')));
-                    return;
-                  }
-                  Navigator.pushNamed(ctx, '/cart');
-                },
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.shopping_cart),
-                    if(count > 0)
-                      Positioned(
-                        right: -6,
-                        top: -6,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                          child: Text(count.toString(), style: const TextStyle(fontSize: 10, color: Colors.white)),
+            Builder(
+              builder: (ctx) {
+                final auth = ctx.read<AppAuthProvider>();
+                final count = ctx.watch<CartProvider>().items.length;
+                return IconButton(
+                  constraints: const BoxConstraints(),
+                  tooltip: 'Cart',
+                  onPressed: () {
+                    if (!auth.isLoggedIn || auth.userId == null) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(content: Text('Please login first')),
+                      );
+                      return;
+                    }
+                    Navigator.pushNamed(ctx, '/cart');
+                  },
+                  icon: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      const Icon(Icons.shopping_cart),
+                      if (count > 0)
+                        Positioned(
+                          right: -6,
+                          top: -6,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: const BoxDecoration(
+                              color: Colors.red,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              count.toString(),
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              );
-            }),
+                    ],
+                  ),
+                );
+              },
+            ),
             const SizedBox(width: 12),
             IconButton(
               // padding: EdgeInsets.only(right: 20),
@@ -488,13 +554,22 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                         ],
                       ),
                 );
-                if (confirmLogout == true) {
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    '/login',
-                    (r) => false,
-                  );
-                }
+                if (confirmLogout != true) return;
+
+                // SECURE SIGN OUT TO CLEAR TOKEN
+                final api = ApiServices(baseUrl: ApiServices.defaultBaseUrl());
+                final auth = context.read<AppAuthProvider>();
+                final cart = context.read<CartProvider>();
+                await api.deleteAccessToken();
+                auth.logout();
+                cart.clear();
+
+                if (!mounted) return;
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/login',
+                  (r) => false,
+                );
               },
             ),
             const SizedBox(width: 8),
