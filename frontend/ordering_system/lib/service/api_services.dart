@@ -362,4 +362,41 @@ class ApiServices {
       'Failed to update profile: ${resp.statusCode}: ${resp.body}',
     );
   }
+
+  // FOR CHECKOUT
+  Future<Map<String, dynamic>> checkoutEnhanced({
+    required String token,
+    required int userId, // not used by server now but ok to keep
+    required List<Map<String, dynamic>> items,
+    required String paymentMethod,
+    required String shippingMethod, // 'self' or '2days'
+    required String address,
+    required String phone,
+    required double deliveryFee,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/cart/checkout-enhanced/');
+    final resp = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'items': items,
+        'payment_method': paymentMethod,
+        'shipping_method': shippingMethod,
+        'address': address,
+        'phone': phone,
+        'delivery_fee': deliveryFee,
+      }),
+    );
+
+    if (resp.statusCode == 201 || resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'checkoutEnhanced failed: ${resp.statusCode}: ${resp.body}',
+    );
+  }
 }

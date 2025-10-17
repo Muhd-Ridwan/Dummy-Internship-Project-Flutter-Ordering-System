@@ -22,4 +22,5 @@ urlpatterns = [
     path('cart/item/<int:pk>/', cart_views.cart_item_detail, name='api_cart_item_detail'), # /api/cart/item/1/
     path('cart/checkout/', cart_views.checkout, name='api_cart_checkout'), # /api/cart/checkout/
     path('profile/', my_profile, name='api_profile'),
+    path('cart/checkout-enhanced/', cart_views.checkout_enhanced, name='api_cart_checkout_enhanced'), # /api/cart/checkout-enhanced/
 ]

@@ -9,5 +9,5 @@ router.register(r'orders', OrderViewSet, basename='order')
 urlpatterns = router.urls
 
 urlpatterns += [
-    path('products/<int:pk>/purchase/', purchase_product, name='purchase_product'),
+    path('<int:pk>/purchase/', purchase_product, name='purchase_product'),
 ]

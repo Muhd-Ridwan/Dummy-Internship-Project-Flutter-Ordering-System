@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from django.urls import path
 from corsheaders.defaults import default_headers
+from datetime import timedelta
 import os
 import environ
 
@@ -30,7 +31,8 @@ SECRET_KEY = 'django-insecure-a4f68_-rpl9cmxw3q@*8*vt4qqjqks^khot(%3sx#4tr3kk2)_
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '100.73.166.7']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# '100.73.166.7'
 
 
 # Application definition
@@ -71,7 +73,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:60497",
     "http://localhost:8000",    # optional: if you open backend in browser
     "http://10.0.2.2:8000",     # optional: Android emulator host
-    "http://ridwan-laptop.bass-atlas.ts.net:8000", # optional: if you want to access from other devices in the same network
+    # "http://ridwan-laptop.bass-atlas.ts.net:8000", # optional: if you want to access from other devices in the same network
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -116,7 +118,7 @@ DATABASES = {
         'NAME': 'Intern',
         'USER': 'Ridwan',
         'PASSWORD': 'abcd1234',
-        'HOST': 'ridwan-laptop.bass-atlas.ts.net',
+        'HOST': 'localhost',
         "PORT": '5432'
     }
 }
@@ -166,3 +168,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # "ALGORITHM": "HS256",  # default
+    # "SIGNING_KEY": SECRET_KEY,  # default
+}

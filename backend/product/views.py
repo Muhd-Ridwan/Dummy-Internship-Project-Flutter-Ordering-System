@@ -1,15 +1,14 @@
-from django.shortcuts import render
-from .models import Product
-from .serializers import ProductSerializer
-from rest_framework import viewsets, permissions
+from decimal import Decimal
 from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework import permissions, status
 from rest_framework.response import Response
-from rest_framework import status
+
+from .serializers import ProductSerializer, OrderSerializer
+from rest_framework import viewsets, permissions
 
 
 from .models import Product, Order
-from .serializers import OrderSerializer
 
 # Create your views here.
 
@@ -43,34 +42,33 @@ def purchase_product(request, pk):
     POST /api/products/pk/purchase/
     body: {"quantity": int}
     """
-    try:
-        qty = int(request.data.get('quantity', 1))
-    except (TypeError, ValueError):
-        return Response({"detail": "quantity must be an integer."}, status=status.HTTP_400_BAD_REQUEST)
-    if qty <= 0:
-        return Response({"detail": "quantity must be > 0."}, status=status.HTTP_400_BAD_REQUEST)
-    
+    shipping_address = (request.data.get('shipping_address') or "").strip()
+    shipping_method  = (request.data.get('shipping_method')  or "").strip()
+
+    # NEW: resolve Userian
+    # also allow clients to pass user_id explicitly as a fallback
+    fallback_user_id = request.data.get("user_id")
+    buyer = resolve_userian_from_request(request, fallback_user_id=fallback_user_id)
+
+    if buyer is None:
+        return Response({"detail": "Unable to resolve buyer profile."}, status=status.HTTP_400_BAD_REQUEST)
+
     with transaction.atomic():
-        try:
-            product = Product.objects.select_for_update().get(pk=pk)
-        except Product.DoesNotExist:
-            return Response({"detail": "Product not found."}, status=status.HTTP_404_NOT_FOUND)
+        product = Product.objects.select_for_update().get(pk=pk)
         if product.stock < qty:
             return Response({"detail": "Insufficient stock."}, status=status.HTTP_400_BAD_REQUEST)
-        
-        product.stock -= qty
-        product.save()
 
-        buyer = request.user if getattr(request, "user", None) and request.user.is_authenticated else None
+        product.stock -= qty
+        product.save(update_fields=["stock"])
 
         order = Order.objects.create(
             product=product,
-            buyer=buyer,
+            buyer=buyer,  # <-- now a real account.Userian
             quantity=qty,
-            total_price=qty * product.price,
+            total_price=product.price * qty,
             shipping_address=shipping_address,
             shipping_method=shipping_method,
-            status=Order.STATUS_PENDING
+            status=Order.STATUS_PENDING,
         )
-    
+
     return Response(OrderSerializer(order).data, status=status.HTTP_201_CREATED)
