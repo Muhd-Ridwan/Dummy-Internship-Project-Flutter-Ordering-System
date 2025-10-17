@@ -14,6 +14,8 @@ import 'providers/cart_providers.dart';
 import 'authentication/login.dart';
 import 'product_cart/product_catalog.dart';
 import 'product_cart/cart.dart';
+import 'customer/cust_dashboard.dart';
+import 'customer/profile.dart';
 
 // SERVICES
 import 'service/api_services.dart';
@@ -63,6 +65,8 @@ class MyApp extends StatelessWidget {
             '/apitest': (context) => const ApiTestScreen(),
             '/product': (context) => const SimpleProductCatalog(),
             '/cart': (context) => const CartScreen(),
+            '/dashboard': (context) => const CustDashboard(),
+            '/editProfile': (context) => const EditProfile(),
           },
         );
       },
@@ -78,7 +82,8 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AppAuthProvider>();
     if (auth.isLoggedIn) {
-      return const SimpleProductCatalog();
+      return const CustDashboard();
+      // return const SimpleProductCatalog();
     } else {
       return const LoginScreen();
     }

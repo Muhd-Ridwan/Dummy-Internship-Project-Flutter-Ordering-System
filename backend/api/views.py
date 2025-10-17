@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import check_password
 # IMPORT APP CLASS
 from account.models import Userian
 from product.models import Product
-from account.serializers import UserianSerializer
+from account.serializers import UserianSerializer, UserianProfileSerializer
 from product.serializers import ProductSerializer
 
 from rest_framework.decorators import api_view
@@ -165,3 +165,35 @@ def me(request, *args, **kwargs):
         "username": cust.username,
         "role": getattr(cust, "role", "customer"),
     }, status=200)
+
+
+# FOR EDITING PROFILE API CALLED
+@api_view(["GET", "PATCH"])
+@permission_classes([IsAuthenticated])
+def my_profile(request, *args, **kwargs):
+    """
+    GET /api/profile/ -> full profile path to read & edit editable fields
+    PATCH /api/profile/ -> updating phoneNum, address only
+    """
+    # TRY BY EMAIL ?
+    cust = Userian.objects.filter(email=request.user.email).first()
+
+    # FALLBACK
+    if not cust and request.user.username.startsWith("cust_"):
+        try:
+            cid = int(request.user.username.split("_", 1)[1])
+            cust = Userian.objects.filter(id=cid).first()
+        except Exception:
+            pass
+            
+    if not cust:
+        return Response({"detail": "Profile not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == "GET":
+        return Response(UserianProfileSerializer(cust).data)
+    
+    # PATCH
+    ser = UserianProfileSerializer(cust, data=request.data, partial=True)
+    ser.is_valid(raise_exception=True)
+    ser.save()
+    return Response(ser.data, status=status.HTTP_200_OK)

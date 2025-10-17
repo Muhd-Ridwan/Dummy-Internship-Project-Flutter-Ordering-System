@@ -21,3 +21,14 @@ class UserianSerializer(serializers.ModelSerializer):
         if pwd:
             instance.password = make_password(pwd)
         return super().update(instance, validated_data)
+
+class UserianProfileSerializer(serializers.ModelSerializer):
+    """
+    Used by /api/profile/
+    Only 'phoneNum' and 'address' are editable; other fields are read-only.
+    """
+
+    class Meta:
+        model = Userian
+        fields = ["id", "name", "username", "email", "role", "phoneNum", "address"]
+        read_only_fields = ["id", "name", "username", "email", "role"]

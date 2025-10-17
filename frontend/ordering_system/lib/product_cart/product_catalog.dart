@@ -248,7 +248,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                           double.tryParse(p['price']?.toString() ?? '0') ?? 0.0;
 
                       // USE LOCAL SELECTOR QTY
-                      final qty = _getPendingQty(pid);
+                      int qty = _getPendingQty(pid);
                       // final cart = context.watch<CartProvider>();
                       // final idx = cart.items.indexWhere(
                       //   (c) => c.productId == pid,
@@ -381,6 +381,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
                                               content: Text('Added to cart'),
                                             ),
                                           );
+                                          qty = 0;
                                         } catch (e) {
                                           ScaffoldMessenger.of(
                                             context,
@@ -469,7 +470,7 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
 
     // MAIN IS HERE
     return PopScope(
-      canPop: false,
+      canPop: true,
       child: Scaffold(
         appBar: AppBar(
           title: Text(

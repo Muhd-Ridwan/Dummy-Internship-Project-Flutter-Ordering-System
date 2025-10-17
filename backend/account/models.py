@@ -9,6 +9,7 @@ class Userian(models.Model):
     role = models.CharField(max_length = 50)
     email = models.CharField(max_length = 50)
     phoneNum = models.CharField(max_length = 20)
+    address = models.CharField(max_length = 200, blank=True, null=True)
 
     def __str__(self):
         return str({self.name} - {self.username} - {self.role})

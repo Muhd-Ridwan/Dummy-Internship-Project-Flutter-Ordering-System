@@ -71,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ).showSnackBar(const SnackBar(content: Text('Login Successful')));
 
       if (role == 'customer') {
-        Navigator.pushNamedAndRemoveUntil(context, '/product', (_) => false);
+        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false);
       } else {
         //
       }
@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (role == 'customer') {
                         Navigator.pushNamedAndRemoveUntil(
                           context,
-                          '/product',
+                          '/dashboard',
                           (_) => false,
                         );
                       } else {

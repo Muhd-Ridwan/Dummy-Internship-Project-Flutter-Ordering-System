@@ -321,4 +321,45 @@ class ApiServices {
   Future<void> deleteRefreshToken() async {
     await _secureStorage.delete(key: 'refresh');
   }
+
+  // FOR GET PROFILE API
+  Future<Map<String, dynamic>> getMyProfile(String token) async {
+    final url = Uri.parse('$baseUrl/api/profile/');
+    final resp = await http.get(
+      url, // CONTENT-TYPE WAS SENDING
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    throw Exception('Failed to load profile: ${resp.statusCode}: ${resp.body}');
+  }
+
+  // UPDATE THE PROFILE
+  Future<Map<String, dynamic>> updateMyProfile({
+    required String token,
+    String? phoneNum,
+    String? address,
+  }) async {
+    final url = Uri.parse('$baseUrl/api/profile/');
+    final body = <String, dynamic>{};
+    if (phoneNum != null) body['phoneNum'] = phoneNum;
+    if (address != null) body['address'] = address;
+
+    final resp = await http.patch(
+      url,
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(body),
+    );
+    if (resp.statusCode == 200) {
+      return jsonDecode(resp.body) as Map<String, dynamic>;
+    }
+    throw Exception(
+      'Failed to update profile: ${resp.statusCode}: ${resp.body}',
+    );
+  }
 }
