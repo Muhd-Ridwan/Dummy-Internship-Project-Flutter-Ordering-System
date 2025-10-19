@@ -14,8 +14,12 @@ How to run it:
 7. Download & Install Flutter Extension in VSCode
 8. Create 2 folder. [Backend, Frontend]
 9. Open Terminal -> cd Backend create virtual environment: (python3 -m venv venv)
-10. Load data aacounts.json, products.json, cart.json -> (python manage.py loaddata accounts.json) and so on.
-11. Run flutter without debugging using chrome.
+10. Activate venv -> venv\Scripts\Activate -> your terminal will have (venv) in front
+11. Install the requirementx.txt -> pip install -r requirements.txt
+12. Run py manage.py makemigrations
+13. Run py manage.py migrate
+14. Load data acounts.json, products.json, cart.json -> (python manage.py loaddata accounts.json) and so on.
+15. Run flutter without debugging using chrome.
 
 
 VOILA ! Now you can run the app
