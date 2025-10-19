@@ -1,0 +1,54 @@
+[
+{
+  "model": "account.userian",
+  "pk": 1,
+  "fields": {
+    "name": "Muhammad Jamaludin",
+    "username": "Jamaludin",
+    "password": "pbkdf2_sha256$1000000$jxWa6lwZ9KE2ouvHEPGKSq$BEBq9gXIqZv/jPKCAn24akGOkWNgxk263ixcuR+jmQU=",
+    "role": "customer",
+    "email": "muhdridwanz432@gmail.com",
+    "phoneNum": "01987654321",
+    "address": ""
+  }
+},
+{
+  "model": "account.userian",
+  "pk": 2,
+  "fields": {
+    "name": "Glenn",
+    "username": "Glenn",
+    "password": "pbkdf2_sha256$1000000$5aKpMGmKO2xMsjJifAWMlM$g49Q3iMveEJ+eJjg/S7V4+EkeuqBvhCUHRtosBqGAro=",
+    "role": "customer",
+    "email": "muhdridwanz432@gmail.com",
+    "phoneNum": "0123456789",
+    "address": null
+  }
+},
+{
+  "model": "account.userian",
+  "pk": 3,
+  "fields": {
+    "name": "Jin Ann",
+    "username": "Ann",
+    "password": "pbkdf2_sha256$1000000$9YAjFBTD0TjdhWqxNDOxbU$NtAx47KyBxa6j8f5TWEIK6iG0d/dQDrK1aGZHhu8XCg=",
+    "role": "customer",
+    "email": "muhdridwanz432@gmail.com",
+    "phoneNum": "0123456789",
+    "address": null
+  }
+},
+{
+  "model": "account.userian",
+  "pk": 4,
+  "fields": {
+    "name": "Zainudin",
+    "username": "Zainudin",
+    "password": "pbkdf2_sha256$1000000$EddHo8XasQv3zVLcf6jMd3$RhwnfonJMchLLoCRsbkOI3C5E4JinSXgWIDiWC2Pwt8=",
+    "role": "customer",
+    "email": "muhdridwan432@gmail.com",
+    "phoneNum": "0189430768",
+    "address": "No 16A Jalan 11C Bazar At-Taqwa Selayang Baru"
+  }
+}
+]
