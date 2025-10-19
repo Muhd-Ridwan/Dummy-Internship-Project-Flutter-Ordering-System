@@ -37,18 +37,18 @@ class _Register extends State<Register> {
 
   // SUCCESS DIALOG
   Future<void> _showSuccessDialog() async {
-    return showDialog(
+    return showDialog<void>(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: false, // only OK will close it
       builder:
-          (_) => AlertDialog(
+          (dialogContext) => AlertDialog(
             title: const Text('Registration Successful'),
             content: const Text('Your account has been created successfully.'),
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
-                  _clearForm();
+                  Navigator.of(dialogContext).pop(); // closes the dialog
+                  _clearForm(); // do your follow-up
                 },
                 child: const Text('OK'),
               ),
@@ -59,23 +59,25 @@ class _Register extends State<Register> {
 
   // ERROR DIALOG
   Future<void> _showErrorDialog(String message) async {
-    return showDialog(
-      context: context,
-      builder:
-          (_) => AlertDialog(
-            title: const Text('Registration Failed'),
-            content: Text(message),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  _clearForm();
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          ),
-    );
-  }
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Registration Failed'),
+      content: Text(message),
+      actions: [
+        TextButton(
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // <-- close the dialog
+            _clearForm();
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
+}
+
 
   void _createAccount() async {
     if (_formKey.currentState!.validate()) {

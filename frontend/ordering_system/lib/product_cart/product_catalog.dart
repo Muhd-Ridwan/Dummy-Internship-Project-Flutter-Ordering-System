@@ -34,7 +34,6 @@ class _SimpleProductCatalogState extends State<SimpleProductCatalog> {
   // SEARCH RELATED
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedCategory = 'All';
 
   List<Map<String, dynamic>> _allProducts = [];
 

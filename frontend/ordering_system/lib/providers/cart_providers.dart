@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:dio/dio.dart';
-import '';
-import '../models/cart_item.dart';
 
 class CartItem {
   final String productId;

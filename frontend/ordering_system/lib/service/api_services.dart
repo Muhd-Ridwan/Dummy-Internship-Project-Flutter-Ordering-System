@@ -72,8 +72,20 @@ class ApiServices {
     final resp = await http.post(url, headers: headers, body: jsonEncode(data));
     if (resp.statusCode == 200 || resp.statusCode == 201) {
       return jsonDecode(resp.body) as Map<String, dynamic>;
-    } else {
-      throw Exception('Registration Failed: ${resp.statusCode}: ${resp.body}');
+    }
+
+    try {
+      final body = jsonDecode(resp.body);
+      // Common DRF shape: {"username": ["This username is already taken."]}
+      final msg =
+          body['username']?.first ??
+          body['email']?.first ??
+          body['non_field_errors']?.first ??
+          body['detail'] ??
+          resp.body;
+      throw Exception(msg.toString());
+    } catch (_) {
+      throw Exception('Registration Failed: ${resp.statusCode}. Username already exists.');
     }
   }
 
@@ -405,17 +417,30 @@ class ApiServices {
     final url = Uri.parse('$baseUrl/api/products/orders/');
     final resp = await http.get(
       url,
-      headers:{
-        'Accept': 'application/json',
-        'Authorization':'Bearer $token',
-      },
+      headers: {'Accept': 'application/json', 'Authorization': 'Bearer $token'},
     );
-    if(resp.statusCode == 200){
-      return List<dynamic>.from (jsonDecode(resp.body));
-    }else {
+    if (resp.statusCode == 200) {
+      return List<dynamic>.from(jsonDecode(resp.body));
+    } else {
       throw Exception(
         'Failed to load orders: ${resp.statusCode}: ${resp.body}',
       );
+    }
+  }
+
+  // FOR FORGOT PASSWORD
+  Future<void> requestPasswordResetByUsername(String username) async {
+    final url = Uri.parse('$baseUrl/api/password/forgot/');
+    final resp = await http.post(
+      url,
+      headers: const {
+        'content-type': 'application/json',
+        'accept': 'application/json',
+      },
+      body: jsonEncode({'username': username}),
+    );
+    if (resp.statusCode != 200) {
+      throw Exception('Reset request failed: ${resp.statusCode}: ${resp.body}');
     }
   }
 }

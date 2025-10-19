@@ -176,3 +176,6 @@ SIMPLE_JWT = {
     # "ALGORITHM": "HS256",  # default
     # "SIGNING_KEY": SECRET_KEY,  # default
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "no-reply@example.com"

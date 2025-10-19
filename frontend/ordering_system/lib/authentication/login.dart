@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ordering_system/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 import '../service/api_services.dart';
-import 'package:text_3d/text_3d.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -15,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _username = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  //final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _obscurePassword = true;
 
   // LOGIN LOGIC USING ENTER BUTTON

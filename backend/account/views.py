@@ -12,6 +12,13 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
+from django.conf import settings
+from django.contrib.auth.tokens import default_token_generator as token_generator
+from django.core.mail import send_mail
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.urls import reverse
+from django.contrib.auth.hashers import make_password
 
 
 
@@ -85,7 +92,7 @@ def me(request):
     """
 
     # TRY BY EMAIL
-    cust = Userian.object.filter(email=request.user.email).first()
+    cust = Userian.objects.filter(email=request.user.email).first()
     if not cust and request.user.username.startswith("cust_"):
         try:
             cid = int(request.user.username.split("_", 1)[1])
@@ -114,3 +121,77 @@ class UserianViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def protected_view(request):
     return Response({"Ok": True, "user": request.user.username})
+
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def password_forgot(request):
+    """
+    POST /api/password/forgot/
+    body: {"username": "<username>"}
+    Always returns 200 (don’t leak whether user exists).
+    """
+    username = (request.data.get("username") or "").strip()
+
+    # Try to find your custom user
+    cust = Userian.objects.filter(username=username).first()
+    if not cust:
+        return Response({"sent": True})  # same response for non-existing usernames
+
+    # Ensure there is a Django auth user for token generation
+    user = _django_user(cust)
+
+    uidb64 = urlsafe_base64_encode(force_bytes(user.pk))
+    token = token_generator.make_token(user)
+
+    reset_url = request.build_absolute_uri(
+        reverse('password_reset_confirm_api', args=[uidb64, token])
+    )
+
+    # Send via console backend in dev; configure real SMTP in production
+    send_mail(
+        subject='Reset your password',
+        message=f'Click the link to reset your password: {reset_url}',
+        from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "no-reply@example.com"),
+        recipient_list=[cust.email],
+        fail_silently=True,
+    )
+
+    return Response({"sent": True}, status=200)
+
+
+@api_view(['GET', 'POST'])
+@permission_classes([AllowAny])
+def password_reset_confirm(request, uidb64, token):
+    """
+    GET  -> validate token (returns {"valid": true/false})
+    POST -> body: {"password": "<new password>"} to set a new password
+    """
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except Exception:
+        return Response({"valid": False}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not token_generator.check_token(user, token):
+        return Response({"valid": False}, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == "GET":
+        return Response({"valid": True})
+
+    # POST: set new password
+    new_pwd = (request.data.get("password") or "").strip()
+    if not new_pwd:
+        return Response({"detail": "password is required"}, status=400)
+
+    user.set_password(new_pwd)
+    user.save(update_fields=["password"])
+
+    # Keep your custom table in sync (optional but likely needed in your app)
+    cust = Userian.objects.filter(email=user.email).first()
+    if cust:
+        cust.password = make_password(new_pwd)
+        cust.save(update_fields=["password"])
+
+    return Response({"ok": True}, status=200)

@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 
 import 'package:ordering_system/service/api_services.dart';
-import 'package:ordering_system/providers/auth_provider.dart';
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});

@@ -1,6 +1,8 @@
 from django.urls import path
 from .views import api_home, register_user, login_user, me, my_profile # IMPORT EVERY DEF THAT CREATE IN VIEWS.PY FROM THE APPLICATION
 from cart import views as cart_views
+from account.views import password_forgot, password_reset_confirm
+from account import views as account_views
 
 
 #from rest_framework.routers import DefaultRouter
@@ -23,4 +25,6 @@ urlpatterns = [
     path('cart/checkout/', cart_views.checkout, name='api_cart_checkout'), # /api/cart/checkout/
     path('profile/', my_profile, name='api_profile'),
     path('cart/checkout-enhanced/', cart_views.checkout_enhanced, name='api_cart_checkout_enhanced'), # /api/cart/checkout-enhanced/
+    path('password/forgot/', account_views.password_forgot, name='password_forgot_api'),
+    path('password/reset/<uidb64>/<token>/', account_views.password_reset_confirm, name='password_reset_confirm_api'),
 ]

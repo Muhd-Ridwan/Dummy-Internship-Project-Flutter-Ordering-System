@@ -21,6 +21,14 @@ class UserianSerializer(serializers.ModelSerializer):
         if pwd:
             instance.password = make_password(pwd)
         return super().update(instance, validated_data)
+    
+    def validate_username(self, value):
+        qs = Userian.objects.filter(username=value)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
+            raise serializers.ValidationError("This username is already taken.")
+        return value
 
 class UserianProfileSerializer(serializers.ModelSerializer):
     """
