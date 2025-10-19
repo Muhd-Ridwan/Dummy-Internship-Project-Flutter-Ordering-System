@@ -17,6 +17,7 @@ import 'product_cart/cart.dart';
 import 'customer/cust_dashboard.dart';
 import 'customer/profile.dart';
 import 'product_cart/checkout.dart';
+import 'product_cart/order.dart';
 
 // SERVICES
 import 'service/api_services.dart';
@@ -69,6 +70,7 @@ class MyApp extends StatelessWidget {
             '/dashboard': (context) => const CustDashboard(),
             '/editProfile': (context) => const EditProfile(),
             '/checkout': (context) => const Checkout(),
+            '/orders': (context) => const OrdersScreen(),
           },
         );
       },

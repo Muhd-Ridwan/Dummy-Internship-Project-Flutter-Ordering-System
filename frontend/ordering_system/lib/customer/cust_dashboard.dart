@@ -168,7 +168,7 @@ class _DashBoardCard extends StatelessWidget {
           if (title == 'Browse Products') {
             Navigator.pushNamed(context, '/product');
           } else if (title == 'Order History') {
-            // Navigator.pushNamed(context, '/orderHistory');
+            Navigator.pushNamed(context, '/orders');
           } else if (title == 'Profile') {
             Navigator.pushNamed(context, '/editProfile');
           }

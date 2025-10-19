@@ -399,4 +399,23 @@ class ApiServices {
       'checkoutEnhanced failed: ${resp.statusCode}: ${resp.body}',
     );
   }
+
+  // FETCHING CUSTOMER ORDER
+  Future<List<dynamic>> fetchOrders(String token) async {
+    final url = Uri.parse('$baseUrl/api/products/orders/');
+    final resp = await http.get(
+      url,
+      headers:{
+        'Accept': 'application/json',
+        'Authorization':'Bearer $token',
+      },
+    );
+    if(resp.statusCode == 200){
+      return List<dynamic>.from (jsonDecode(resp.body));
+    }else {
+      throw Exception(
+        'Failed to load orders: ${resp.statusCode}: ${resp.body}',
+      );
+    }
+  }
 }
