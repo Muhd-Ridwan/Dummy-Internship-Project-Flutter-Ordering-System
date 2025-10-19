@@ -4,14 +4,15 @@ from django.db import models
 
 class Userian(models.Model):
     name = models.CharField(max_length = 100)
-    username = models.CharField(max_length = 100)
+    username = models.CharField(max_length = 100, unique=True)
     password = models.CharField(max_length = 100)
     role = models.CharField(max_length = 50)
     email = models.CharField(max_length = 50)
     phoneNum = models.CharField(max_length = 20)
+    address = models.CharField(max_length = 200, blank=True, null=True)
 
     def __str__(self):
-        return ({self.name} - {self.username} - {self.role})
+        return str({self.name} - {self.username} - {self.role})
 
     # def generateRandomStuff():
     #     import random

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 from django.urls import path
 from corsheaders.defaults import default_headers
+from datetime import timedelta
 import os
 import environ
 
@@ -31,6 +32,7 @@ SECRET_KEY = 'django-insecure-a4f68_-rpl9cmxw3q@*8*vt4qqjqks^khot(%3sx#4tr3kk2)_
 DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+# '100.73.166.7'
 
 
 # Application definition
@@ -46,6 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'account',
     'api',
+    'product',
+    'cart',
 ]
 
 MIDDLEWARE = [
@@ -69,6 +73,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:60497",
     "http://localhost:8000",    # optional: if you open backend in browser
     "http://10.0.2.2:8000",     # optional: Android emulator host
+    # "http://ridwan-laptop.bass-atlas.ts.net:8000", # optional: if you want to access from other devices in the same network
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -89,7 +94,7 @@ REST_FRAMEWORK = {
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR, 'backend.frontend')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -155,7 +160,22 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# FOR MEDIA FILES
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=8),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    # "ALGORITHM": "HS256",  # default
+    # "SIGNING_KEY": SECRET_KEY,  # default
+}
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+DEFAULT_FROM_EMAIL = "no-reply@example.com"

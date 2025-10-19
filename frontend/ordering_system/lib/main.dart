@@ -8,9 +8,19 @@ import 'package:provider/provider.dart';
 // PROVIDERS
 import 'providers/auth_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/cart_providers.dart';
 
 // SCREENS
 import 'authentication/login.dart';
+import 'product_cart/product_catalog.dart';
+import 'product_cart/cart.dart';
+import 'customer/cust_dashboard.dart';
+import 'customer/profile.dart';
+import 'product_cart/checkout.dart';
+import 'product_cart/order.dart';
+
+// SERVICES
+// import 'service/api_services.dart';
 
 Future<void> main() async {
   await startApp();
@@ -31,6 +41,7 @@ Future<void> startApp() async {
       providers: [
         ChangeNotifierProvider(create: (_) => AppAuthProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
       ],
       child: const MyApp(),
     ),
@@ -54,6 +65,12 @@ class MyApp extends StatelessWidget {
             '/register': (context) => const Register(),
             '/forgot': (context) => const ForgotPassword(),
             '/apitest': (context) => const ApiTestScreen(),
+            '/product': (context) => const SimpleProductCatalog(),
+            '/cart': (context) => const CartScreen(),
+            '/dashboard': (context) => const CustDashboard(),
+            '/editProfile': (context) => const EditProfile(),
+            '/checkout': (context) => const Checkout(),
+            '/orders': (context) => const OrdersScreen(),
           },
         );
       },
@@ -67,6 +84,13 @@ class AuthGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AppAuthProvider>();
+    if (auth.isLoggedIn) {
+      return const CustDashboard();
+      // return const SimpleProductCatalog();
+    } else {
+      return const LoginScreen();
+    }
     // final auth = context.watch<AppAuthProvider>();
     // switch (auth.status) {
     //   case AuthStatus.checking:
@@ -75,8 +99,6 @@ class AuthGate extends StatelessWidget {
     //     return const HomeScreen();
     //   case AuthStatus.unauthenticated:
     //     return const LoginScreen();
-
-    return const LoginScreen();
   }
 }
 
