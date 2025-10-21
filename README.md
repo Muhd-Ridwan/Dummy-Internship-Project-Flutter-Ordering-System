@@ -24,5 +24,6 @@ How to run it:
 
 VOILA ! Now you can run the app
 
-PS: If have some error regarding the psycopg, try to install the binary using pip installation at terminal.
-  : Im using terminal (CMD) in VsCode. 
+PS > If have some error regarding the psycopg, try to install the binary using pip installation at terminal.
+   > Im using terminal (CMD) in VsCode.
+   > Configure the database as you like but make sure it match the settings.py   
